@@ -41,39 +41,44 @@ export const AlarmModal = ({
 				window.AudioContext || (window as any).webkitAudioContext
 			)();
 
-			// Crear un oscilador para generar el sonido
-			const oscillator = audioContext.createOscillator();
-			const gainNode = audioContext.createGain();
+			// Función para crear un beep individual
+			const createBeep = (startTime: number, duration: number = 0.3) => {
+				const oscillator = audioContext.createOscillator();
+				const gainNode = audioContext.createGain();
 
-			// Conectar los nodos
-			oscillator.connect(gainNode);
-			gainNode.connect(audioContext.destination);
+				// Conectar los nodos
+				oscillator.connect(gainNode);
+				gainNode.connect(audioContext.destination);
 
-			// Configurar el sonido de alarma (frecuencia más aguda y distintiva)
-			oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-			oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
-			oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-			oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.3);
+				// Configurar el sonido (frecuencia distintiva)
+				oscillator.frequency.setValueAtTime(800, startTime);
+				oscillator.frequency.setValueAtTime(1000, startTime + 0.1);
+				oscillator.frequency.setValueAtTime(800, startTime + 0.2);
 
-			// Configurar el volumen
-			gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-			gainNode.gain.exponentialRampToValueAtTime(
-				0.01,
-				audioContext.currentTime + 0.5,
-			);
+				// Configurar el volumen
+				gainNode.gain.setValueAtTime(0.4, startTime);
+				gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
-			// Configurar el tipo de onda
-			oscillator.type = "sine";
+				// Configurar el tipo de onda
+				oscillator.type = "sine";
 
-			// Reproducir el sonido
-			oscillator.start(audioContext.currentTime);
-			oscillator.stop(audioContext.currentTime + 0.5);
+				// Programar el beep
+				oscillator.start(startTime);
+				oscillator.stop(startTime + duration);
 
-			// Limpiar después de que termine
+				return oscillator;
+			};
+
+			// Crear 3 beeps con pausas entre ellos
+			const beep1 = createBeep(audioContext.currentTime, 0.3);
+			const beep2 = createBeep(audioContext.currentTime + 0.5, 0.3);
+			const beep3 = createBeep(audioContext.currentTime + 1.0, 0.3);
+
+			// Limpiar después de que terminen todos los beeps
 			setTimeout(() => {
 				setIsPlaying(false);
 				audioContext.close();
-			}, 500);
+			}, 1500); // 1.5 segundos para los 3 beeps
 		} catch (error) {
 			console.warn("Error reproduciendo sonido de alarma:", error);
 			setIsPlaying(false);
@@ -136,8 +141,12 @@ export const AlarmModal = ({
 
 					{isPlaying && (
 						<div className="mt-4 flex items-center justify-center gap-2 text-sm text-red-600 dark:text-red-300">
-							<div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-							Reproduciendo sonido de alarma...
+							<div className="flex gap-1">
+								<div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+								<div className="w-2 h-2 bg-red-500 rounded-full animate-pulse delay-200"></div>
+								<div className="w-2 h-2 bg-red-500 rounded-full animate-pulse delay-500"></div>
+							</div>
+							Reproduciendo 3 beeps de alarma...
 						</div>
 					)}
 				</div>

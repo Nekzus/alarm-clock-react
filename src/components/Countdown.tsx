@@ -17,7 +17,7 @@ export const Countdown: React.FC<CountdownProps> = ({ alarmState }) => {
 
 	// Validar que los valores sean números válidos
 	if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-		console.warn('Countdown values are NaN:', { hours, minutes, seconds });
+		console.warn("Countdown values are NaN:", { hours, minutes, seconds });
 		return null;
 	}
 
