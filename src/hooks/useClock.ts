@@ -20,10 +20,15 @@ console.log("🔍 Environment check:", {
   isDevelopment,
 });
 
+// Interface para diferentes formatos de respuesta de servidores de tiempo
 interface TimeServerResponse {
-  datetime: string;
-  timezone: string;
-  utc_offset: string;
+  datetime?: string;
+  dateTime?: string;
+  current_time?: string;
+  time?: string;
+  timestamp?: number;
+  timezone?: string;
+  utc_offset?: string;
 }
 
 export const useClock = () => {
@@ -63,13 +68,28 @@ export const useClock = () => {
 
         const data: TimeServerResponse = await response.json();
 
-        // Validar que tenemos los datos necesarios
-        if (!data.datetime) {
-          console.warn(`Servidor ${serverUrl} no devolvió datetime válido`);
+        // Manejar diferentes formatos de respuesta
+        let datetime: string | null = null;
+
+        if (data.datetime) {
+          datetime = data.datetime;
+        } else if (data.dateTime) {
+          datetime = data.dateTime;
+        } else if (data.current_time) {
+          datetime = data.current_time;
+        } else if (data.time) {
+          datetime = data.time;
+        } else if (data.timestamp) {
+          // Convertir timestamp a ISO string
+          datetime = new Date(data.timestamp * 1000).toISOString();
+        }
+
+        if (!datetime) {
+          console.warn(`Servidor ${serverUrl} no devolvió datetime válido:`, data);
           return null;
         }
 
-        const serverTime = new Date(data.datetime);
+        const serverTime = new Date(datetime);
 
         // Validar que la fecha sea válida
         if (Number.isNaN(serverTime.getTime())) {
@@ -104,11 +124,14 @@ export const useClock = () => {
     // Función para obtener la hora del servidor con múltiples intentos
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Retry logic with multiple servers naturally has high complexity
     const fetchServerTime = async (retries = 1): Promise<Date | null> => {
-      // Usar APIs más confiables y menos propensas al rate limiting
+      // Usar servidores más confiables y menos propensos al rate limiting
       const servers = [
         "https://timeapi.io/api/Time/current/zone?timeZone=America/Argentina/Buenos_Aires",
         "https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires",
         "https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=zone&zone=America/Argentina/Buenos_Aires",
+        // Servidores alternativos más confiables
+        "https://api.ipgeolocation.io/timezone?apiKey=free&tz=America/Argentina/Buenos_Aires",
+        "https://timezoneapi.io/api/timezone/?America/Argentina/Buenos_Aires",
       ];
 
       for (let attempt = 0; attempt < retries; attempt++) {
@@ -122,9 +145,13 @@ export const useClock = () => {
         }
       }
 
-      console.warn("❌ Todos los servidores fallaron, usando hora local");
+      console.warn("❌ Todos los servidores fallaron, usando hora local como fallback");
       if (isMounted) {
         setIsOnline(false);
+        // Usar hora local como fallback
+        const localTime = new Date();
+        console.log(`🔄 Usando hora local como fallback: ${localTime.toISOString()}`);
+        return localTime;
       }
       return null;
     };
@@ -200,14 +227,21 @@ export const useClock = () => {
         offset = newOffset;
         lastServerSync = Date.now();
         syncAttempts = 0; // Resetear contador de intentos
-        console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
+
+        if (offset === 0) {
+          console.log(`✅ Usando hora local (offset: 0ms) - servidores no disponibles`);
+        } else {
+          console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
+        }
 
         // Actualizar estados de manera funcional
         setLastSync(new Date());
         setIsOnline(true);
       } else if (isMounted) {
-        console.warn(`❌ Fallo en sincronización #${syncAttempts}`);
+        console.warn(`❌ Fallo en sincronización #${syncAttempts} - usando hora local`);
         setIsOnline(false);
+        // Asegurar que usamos offset 0 si falla todo
+        offset = 0;
       }
 
       // Marcar como inicializado globalmente si era una sincronización forzada
@@ -231,6 +265,11 @@ export const useClock = () => {
 
     // Actualizar inmediatamente
     updateTime();
+
+    // Mostrar mensaje informativo sobre el estado de sincronización
+    if (!isDevelopment) {
+      console.log("🕐 Reloj iniciado - intentando sincronizar con servidores de tiempo...");
+    }
 
     // Configurar intervalo para actualizar cada segundo
     const timeInterval = setInterval(updateTime, 1000);
