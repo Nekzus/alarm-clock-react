@@ -153,22 +153,22 @@ export const useAlarm = () => {
   }, []);
 
   const triggerAlarm = useCallback(() => {
-    setAlarmState((prev) => {
-      // Mostrar modal de alarma
-      setShowAlarmModal(true);
-      setAlarmType(prev.targetTime ? "anticipation" : "posterior");
+    // Mostrar modal de alarma primero
+    setShowAlarmModal(true);
+    setAlarmType("anticipation");
 
-      if (prev.isRepetitive && prev.alarmTimes.length > prev.currentAlarmIndex + 1) {
-        // Hay más alarmas repetitivas, pasar a la siguiente
+    setAlarmState((prev) => {
+      const hasMoreAlarms =
+        prev.isRepetitive && prev.alarmTimes.length > prev.currentAlarmIndex + 1;
+
+      if (hasMoreAlarms) {
         const nextIndex = prev.currentAlarmIndex + 1;
         const nextAlarmTime = prev.alarmTimes[nextIndex];
+        const isLastAlarm = nextIndex >= prev.alarmTimes.length - 1;
 
-        // Limpiar el intervalo si no hay más alarmas después de esta
-        if (nextIndex >= prev.alarmTimes.length - 1) {
-          if (countdownIntervalRef.current) {
-            clearInterval(countdownIntervalRef.current);
-            countdownIntervalRef.current = null;
-          }
+        if (isLastAlarm && countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
         }
 
         return {
@@ -177,19 +177,19 @@ export const useAlarm = () => {
           currentAlarmIndex: nextIndex,
           countdown: null,
         };
-      } else {
-        // No hay más alarmas, pausar completamente
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current);
-          countdownIntervalRef.current = null;
-        }
-
-        return {
-          ...prev,
-          isActive: false,
-          countdown: null,
-        };
       }
+
+      // No hay más alarmas, pausar completamente
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+
+      return {
+        ...prev,
+        isActive: false,
+        countdown: null,
+      };
     });
   }, []);
 
