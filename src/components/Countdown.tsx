@@ -2,13 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Timer } from "lucide-react";
 import type React from "react";
-import type { AlarmState } from "../types";
+import type { AlarmState, AlarmConfig } from "../types";
 
 interface CountdownProps {
 	alarmState: AlarmState;
+	alarmConfig?: AlarmConfig | null;
 }
 
-export const Countdown: React.FC<CountdownProps> = ({ alarmState }) => {
+export const Countdown: React.FC<CountdownProps> = ({ alarmState, alarmConfig }) => {
 	if (!alarmState.isActive || !alarmState.countdown) {
 		return null;
 	}
@@ -20,6 +21,36 @@ export const Countdown: React.FC<CountdownProps> = ({ alarmState }) => {
 		console.warn("Countdown values are NaN:", { hours, minutes, seconds });
 		return null;
 	}
+
+	// Calcular la hora objetivo actual
+	const getCurrentTargetTime = () => {
+		if (!alarmState.alarmTime || !alarmConfig) return alarmState.targetTime;
+		
+		// Para alarmas repetitivas, calcular la hora objetivo basada en la alarma actual
+		if (alarmState.isRepetitive) {
+			// Calcular el tiempo de anticipación en milisegundos
+			let anticipationMs = alarmConfig.anticipationValue;
+			switch (alarmConfig.anticipationUnit) {
+				case 'seconds':
+					anticipationMs *= 1000;
+					break;
+				case 'minutes':
+					anticipationMs *= 60 * 1000;
+					break;
+				case 'hours':
+					anticipationMs *= 60 * 60 * 1000;
+					break;
+			}
+			
+			// La hora objetivo es la alarma actual + tiempo de anticipación
+			return new Date(alarmState.alarmTime.getTime() + anticipationMs);
+		}
+		
+		// Para alarmas normales, usar targetTime directamente
+		return alarmState.targetTime;
+	};
+
+	const currentTargetTime = getCurrentTargetTime();
 
 	return (
 		<Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-200 dark:border-red-800 shadow-lg relative overflow-hidden">
@@ -41,7 +72,7 @@ export const Countdown: React.FC<CountdownProps> = ({ alarmState }) => {
 					className="bg-red-100/80 dark:bg-red-900/80 text-red-700 dark:text-red-200 border-red-200 dark:border-red-700 hover:bg-red-200/80 dark:hover:bg-red-800/80 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 rounded-full shadow-lg"
 				>
 					Hacia las{" "}
-					{alarmState.targetTime?.toLocaleTimeString("es-ES", {
+					{currentTargetTime?.toLocaleTimeString("es-ES", {
 						hour: "2-digit",
 						minute: "2-digit",
 						second: "2-digit",

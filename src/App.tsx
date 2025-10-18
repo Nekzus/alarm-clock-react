@@ -69,7 +69,7 @@ function App() {
 					<CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 						<ClockDisplay clockState={clockState} />
 
-						<Countdown alarmState={alarmState} />
+						<Countdown alarmState={alarmState} alarmConfig={lastAlarmConfig} />
 
 						<AlarmForm
 							onSetAlarm={setAlarm}

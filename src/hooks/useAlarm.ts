@@ -84,7 +84,7 @@ export const useAlarm = () => {
     const calculateRepetitiveAlarmTimes = useCallback((config: AlarmConfig): Date[] => {
         const now = new Date();
         const alarmTimes: Date[] = [];
-        
+
         // Calcular tiempo de anticipación en milisegundos
         let anticipationMs = config.anticipationValue;
         switch (config.anticipationUnit) {
@@ -100,8 +100,8 @@ export const useAlarm = () => {
         }
 
         // Si hay horas específicas seleccionadas, usar solo esas
-        const hoursToUse = config.repetitiveMinutes && config.repetitiveMinutes.length > 0 
-            ? config.repetitiveMinutes 
+        const hoursToUse = config.repetitiveMinutes && config.repetitiveMinutes.length > 0
+            ? config.repetitiveMinutes
             : Array.from({ length: 24 }, (_, i) => i);
 
         // Calcular alarmas para las próximas 24 horas
@@ -110,9 +110,9 @@ export const useAlarm = () => {
                 const targetDate = new Date();
                 targetDate.setDate(targetDate.getDate() + dayOffset);
                 targetDate.setHours(hour, config.targetTime.minute, config.targetTime.second, 0);
-                
+
                 const alarmTime = new Date(targetDate.getTime() - anticipationMs);
-                
+
                 // Solo agregar alarmas futuras
                 if (alarmTime > now) {
                     alarmTimes.push(alarmTime);
@@ -207,7 +207,7 @@ export const useAlarm = () => {
                 // Hay más alarmas repetitivas, pasar a la siguiente
                 const nextIndex = prev.currentAlarmIndex + 1;
                 const nextAlarmTime = prev.alarmTimes[nextIndex];
-                
+
                 return {
                     ...prev,
                     alarmTime: nextAlarmTime,
