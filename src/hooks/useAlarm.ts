@@ -72,39 +72,81 @@ export const useAlarm = () => {
       targetDate.setDate(targetDate.getDate() + 1);
     }
 
-    // Calcular tiempo de anticipación en milisegundos
-    let anticipationMs = config.anticipationValue;
-    switch (config.anticipationUnit) {
-      case "seconds":
-        anticipationMs *= 1000;
-        break;
-      case "minutes":
-        anticipationMs *= 60 * 1000;
-        break;
-      case "hours":
-        anticipationMs *= 60 * 60 * 1000;
-        break;
+    // Calcular tiempo de anticipación o posterior en milisegundos
+    let timeMs = 0;
+
+    if (config.anticipationValue > 0) {
+      // Tiempo de anticipación
+      timeMs = config.anticipationValue;
+      switch (config.anticipationUnit) {
+        case "seconds":
+          timeMs *= 1000;
+          break;
+        case "minutes":
+          timeMs *= 60 * 1000;
+          break;
+        case "hours":
+          timeMs *= 60 * 60 * 1000;
+          break;
+      }
+      return new Date(targetDate.getTime() - timeMs);
+    } else if (config.posteriorValue && config.posteriorValue > 0) {
+      // Tiempo posterior
+      timeMs = config.posteriorValue;
+      switch (config.posteriorUnit) {
+        case "seconds":
+          timeMs *= 1000;
+          break;
+        case "minutes":
+          timeMs *= 60 * 1000;
+          break;
+        case "hours":
+          timeMs *= 60 * 60 * 1000;
+          break;
+      }
+      return new Date(targetDate.getTime() + timeMs);
     }
 
-    return new Date(targetDate.getTime() - anticipationMs);
+    // Fallback: si no hay tiempo configurado, usar la hora objetivo
+    return targetDate;
   }, []);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Repetitive alarm calculation logic naturally has high complexity
   const calculateRepetitiveAlarmTimes = useCallback((config: AlarmConfig): Date[] => {
     const now = new Date();
     const alarmTimes: Date[] = [];
 
-    // Calcular tiempo de anticipación en milisegundos
-    let anticipationMs = config.anticipationValue;
-    switch (config.anticipationUnit) {
-      case "seconds":
-        anticipationMs *= 1000;
-        break;
-      case "minutes":
-        anticipationMs *= 60 * 1000;
-        break;
-      case "hours":
-        anticipationMs *= 60 * 60 * 1000;
-        break;
+    // Calcular tiempo de anticipación o posterior en milisegundos
+    let timeMs = 0;
+
+    if (config.anticipationValue > 0) {
+      // Tiempo de anticipación
+      timeMs = config.anticipationValue;
+      switch (config.anticipationUnit) {
+        case "seconds":
+          timeMs *= 1000;
+          break;
+        case "minutes":
+          timeMs *= 60 * 1000;
+          break;
+        case "hours":
+          timeMs *= 60 * 60 * 1000;
+          break;
+      }
+    } else if (config.posteriorValue && config.posteriorValue > 0) {
+      // Tiempo posterior
+      timeMs = config.posteriorValue;
+      switch (config.posteriorUnit) {
+        case "seconds":
+          timeMs *= 1000;
+          break;
+        case "minutes":
+          timeMs *= 60 * 1000;
+          break;
+        case "hours":
+          timeMs *= 60 * 60 * 1000;
+          break;
+      }
     }
 
     // Si hay horas específicas seleccionadas, usar solo esas
@@ -120,7 +162,17 @@ export const useAlarm = () => {
         targetDate.setDate(targetDate.getDate() + dayOffset);
         targetDate.setHours(hour, config.targetTime.minute, config.targetTime.second, 0);
 
-        const alarmTime = new Date(targetDate.getTime() - anticipationMs);
+        let alarmTime: Date;
+        if (config.anticipationValue > 0) {
+          // Tiempo de anticipación: alarma antes del tiempo objetivo
+          alarmTime = new Date(targetDate.getTime() - timeMs);
+        } else if (config.posteriorValue && config.posteriorValue > 0) {
+          // Tiempo posterior: alarma después del tiempo objetivo
+          alarmTime = new Date(targetDate.getTime() + timeMs);
+        } else {
+          // Fallback: usar la hora objetivo
+          alarmTime = targetDate;
+        }
 
         // Solo agregar alarmas futuras
         if (alarmTime > now) {
@@ -228,10 +280,11 @@ export const useAlarm = () => {
         return false;
       }
 
-      if (config.anticipationValue <= 0) {
+      // Validar que al menos uno de los tiempos (anticipación o posterior) sea mayor a 0
+      if (config.anticipationValue <= 0 && (!config.posteriorValue || config.posteriorValue <= 0)) {
         setError({
           field: "anticipation",
-          message: "El tiempo de anticipación debe ser mayor a 0",
+          message: "El tiempo de anticipación o posterior debe ser mayor a 0",
         });
         return false;
       }

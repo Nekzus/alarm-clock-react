@@ -1,5 +1,5 @@
 import type React from "react";
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -56,11 +56,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [theme]);
 
   // React 19: useMemo para optimizar el valor del contexto
-  const value = useMemo(() => ({
-    theme,
-    toggleTheme,
-    setTheme,
-  }), [theme, toggleTheme, setTheme]);
+  const value = useMemo(
+    () => ({
+      theme,
+      toggleTheme,
+      setTheme,
+    }),
+    [theme, toggleTheme, setTheme]
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
