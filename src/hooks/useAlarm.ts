@@ -132,25 +132,28 @@ export const useAlarm = () => {
     }, []);
 
     const updateCountdown = useCallback(() => {
-        if (!alarmState.alarmTime) return;
+        setAlarmState(prev => {
+            if (!prev.alarmTime) return prev;
 
-        const now = new Date();
-        const timeDiff = alarmState.alarmTime.getTime() - now.getTime();
+            const now = new Date();
+            const timeDiff = prev.alarmTime.getTime() - now.getTime();
 
-        if (timeDiff <= 0) {
-            triggerAlarm();
-            return;
-        }
+            if (timeDiff <= 0) {
+                // Programar la activación de la alarma para el siguiente tick
+                setTimeout(() => triggerAlarm(), 0);
+                return prev;
+            }
 
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
 
-        setAlarmState(prev => ({
-            ...prev,
-            countdown: { hours, minutes, seconds }
-        }));
-    }, [alarmState.alarmTime]);
+            return {
+                ...prev,
+                countdown: { hours, minutes, seconds }
+            };
+        });
+    }, [triggerAlarm]);
 
     const stopAlarm = useCallback(() => {
         if (countdownIntervalRef.current) {
