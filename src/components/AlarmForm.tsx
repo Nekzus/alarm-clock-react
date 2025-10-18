@@ -2,7 +2,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -11,10 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlarmClock, ChevronDown, ChevronUp, Clock, Repeat, Settings, Timer } from "lucide-react";
+import { AlarmClock, Clock, Repeat, Settings, Timer } from "lucide-react";
 import { useId } from "react";
 import { useAlarmForm } from "../hooks/useAlarmForm";
 import type { AlarmConfig, ValidationError } from "../types";
+import { NumberInput } from "./NumberInput";
 import { TimeInput } from "./TimeInput";
 
 interface AlarmFormProps {
@@ -164,50 +164,14 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 
             {/* Campos de tiempo (se muestran según la selección) */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <div className="relative">
-                <Input
-                  type="text"
-                  value={formData.timeValue}
-                  onChange={(e) => handleInputChange("timeValue", e.target.value)}
-                  placeholder={formData.timeValue === "" ? "Cantidad" : ""}
-                  className="text-center text-sm sm:text-base font-mono transition-all duration-200 pr-8"
-                  required={formData.timeType === "anticipation"}
-                />
-                <div className="absolute right-1 top-0 h-full flex flex-col">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const currentValue = parseInt(formData.timeValue, 10) || 0;
-                      const unit = formData.timeUnit;
-                      let max = 59;
-                      if (unit === "hours") max = 23;
-                      const newValue = currentValue >= max ? 1 : currentValue + 1;
-                      handleInputChange("timeValue", newValue.toString());
-                    }}
-                    className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-t-sm"
-                  >
-                    <ChevronUp className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const currentValue = parseInt(formData.timeValue, 10) || 0;
-                      const unit = formData.timeUnit;
-                      let max = 59;
-                      if (unit === "hours") max = 23;
-                      const newValue = currentValue <= 1 ? max : currentValue - 1;
-                      handleInputChange("timeValue", newValue.toString());
-                    }}
-                    className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-b-sm"
-                  >
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+              <NumberInput
+                value={formData.timeValue}
+                onChange={(value) => handleInputChange("timeValue", value)}
+                min={1}
+                max={formData.timeUnit === "hours" ? 23 : 59}
+                placeholder="Cantidad"
+                required={formData.timeType === "anticipation"}
+              />
               <Select value={formData.timeUnit} onValueChange={handleUnitChange}>
                 <SelectTrigger className="text-center text-sm sm:text-base">
                   <SelectValue />
