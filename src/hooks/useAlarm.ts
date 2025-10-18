@@ -12,6 +12,7 @@ export const useAlarm = () => {
     const [error, setError] = useState<ValidationError | null>(null);
     const [showAlarmModal, setShowAlarmModal] = useState(false);
     const [alarmType, setAlarmType] = useState<"anticipation" | "posterior" | undefined>(undefined);
+    const [lastAlarmConfig, setLastAlarmConfig] = useState<AlarmConfig | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const countdownIntervalRef = useRef<number | null>(null);
 
@@ -152,9 +153,19 @@ export const useAlarm = () => {
         setShowAlarmModal(true);
         setAlarmType(alarmState.targetTime ? "anticipation" : "posterior");
 
-        // Detener la alarma
-        stopAlarm();
-    }, [stopAlarm, alarmState.targetTime]);
+        // Pausar el countdown pero mantener la configuración
+        setAlarmState(prev => ({
+            ...prev,
+            isActive: false,
+            countdown: null,
+        }));
+
+        // Limpiar el intervalo pero mantener la configuración guardada
+        if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+        }
+    }, [alarmState.targetTime]);
 
     const updateCountdown = useCallback(() => {
         setAlarmState(prev => {
@@ -219,6 +230,9 @@ export const useAlarm = () => {
             countdown: null,
         });
 
+        // Guardar la configuración para poder repetirla
+        setLastAlarmConfig(config);
+
         return true;
     }, [validateTimeInput, calculateAlarmTime]);
 
@@ -246,6 +260,13 @@ export const useAlarm = () => {
         setAlarmType(undefined);
     }, []);
 
+    const repeatLastAlarm = useCallback(() => {
+        if (lastAlarmConfig) {
+            return setAlarm(lastAlarmConfig);
+        }
+        return false;
+    }, [lastAlarmConfig, setAlarm]);
+
     return {
         alarmState,
         error,
@@ -254,5 +275,7 @@ export const useAlarm = () => {
         showAlarmModal,
         alarmType,
         closeAlarmModal,
+        lastAlarmConfig,
+        repeatLastAlarm,
     };
 };

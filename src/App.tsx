@@ -20,6 +20,8 @@ function App() {
 		showAlarmModal,
 		alarmType,
 		closeAlarmModal,
+		lastAlarmConfig,
+		repeatLastAlarm,
 	} = useAlarm();
 
 	return (
@@ -69,12 +71,14 @@ function App() {
 
 						<Countdown alarmState={alarmState} />
 
-						<AlarmForm
-							onSetAlarm={setAlarm}
-							onStopAlarm={stopAlarm}
-							isActive={alarmState.isActive}
-							error={error}
-						/>
+							<AlarmForm
+								onSetAlarm={setAlarm}
+								onStopAlarm={stopAlarm}
+								onRepeatAlarm={repeatLastAlarm}
+								isActive={alarmState.isActive}
+								error={error}
+								lastAlarmConfig={lastAlarmConfig}
+							/>
 
 						<AlarmStatus alarmState={alarmState} />
 					</CardContent>
