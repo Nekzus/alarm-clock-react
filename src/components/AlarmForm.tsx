@@ -33,10 +33,9 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 		targetHour: "",
 		targetMinute: "",
 		targetSecond: "",
-		anticipationValue: "",
-		anticipationUnit: "seconds" as AnticipationUnit,
-		posteriorValue: "",
-		posteriorUnit: "seconds" as AnticipationUnit,
+		timeType: "anticipation" as "anticipation" | "posterior",
+		timeValue: "",
+		timeUnit: "seconds" as AnticipationUnit,
 		isRepetitive: false,
 		repetitiveMinutes: [] as number[],
 	});
@@ -57,14 +56,16 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 				minute: parseInt(formData.targetMinute),
 				second: parseInt(formData.targetSecond),
 			},
-			anticipationValue: parseInt(formData.anticipationValue),
-			anticipationUnit: formData.anticipationUnit,
-			posteriorValue: formData.posteriorValue
-				? parseInt(formData.posteriorValue)
-				: undefined,
-			posteriorUnit: formData.posteriorValue
-				? formData.posteriorUnit
-				: undefined,
+			anticipationValue:
+				formData.timeType === "anticipation" ? parseInt(formData.timeValue) : 0,
+			anticipationUnit:
+				formData.timeType === "anticipation" ? formData.timeUnit : "seconds",
+			posteriorValue:
+				formData.timeType === "posterior"
+					? parseInt(formData.timeValue)
+					: undefined,
+			posteriorUnit:
+				formData.timeType === "posterior" ? formData.timeUnit : undefined,
 			isRepetitive: formData.isRepetitive,
 			repetitiveMinutes: formData.isRepetitive
 				? formData.repetitiveMinutes
@@ -78,10 +79,9 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 				targetHour: "",
 				targetMinute: "",
 				targetSecond: "",
-				anticipationValue: "",
-				anticipationUnit: "seconds",
-				posteriorValue: "",
-				posteriorUnit: "seconds",
+				timeType: "anticipation",
+				timeValue: "",
+				timeUnit: "seconds",
 				isRepetitive: false,
 				repetitiveMinutes: [],
 			});
@@ -134,68 +134,71 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 						</div>
 					</div>
 
-					{/* Tiempo de anticipación */}
+					{/* Selector de tipo de tiempo */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 mb-3">
 							<Timer className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
 							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
-								Tiempo de anticipación
+								Configuración de tiempo
 							</Label>
 						</div>
-						<div className="grid grid-cols-2 gap-2 sm:gap-3">
-							<Input
-								type="number"
-								min="1"
-								placeholder="Cantidad"
-								value={formData.anticipationValue}
-								onChange={(e) =>
-									handleInputChange("anticipationValue", e.target.value)
-								}
-								className="text-center text-sm sm:text-base"
-								required
-							/>
-							<Select
-								value={formData.anticipationUnit}
-								onValueChange={(value) =>
-									handleInputChange("anticipationUnit", value)
-								}
-							>
-								<SelectTrigger className="text-center text-sm sm:text-base">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="seconds">Segundos</SelectItem>
-									<SelectItem value="minutes">Minutos</SelectItem>
-									<SelectItem value="hours">Horas</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
 
-					{/* Tiempo posterior */}
-					<div className="space-y-3">
-						<div className="flex items-center gap-2 mb-3">
-							<AlarmClock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
-							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
-								Tiempo posterior (opcional)
-							</Label>
+						{/* Radio buttons para seleccionar tipo */}
+						<div className="flex gap-4 mb-4">
+							<div className="flex items-center space-x-2">
+								<input
+									type="radio"
+									id="anticipation"
+									name="timeType"
+									value="anticipation"
+									checked={formData.timeType === "anticipation"}
+									onChange={(e) =>
+										handleInputChange("timeType", e.target.value)
+									}
+									className="w-4 h-4 text-slate-600 focus:ring-slate-500"
+								/>
+								<Label
+									htmlFor="anticipation"
+									className="text-sm font-medium text-slate-700 dark:text-slate-300"
+								>
+									Tiempo de anticipación
+								</Label>
+							</div>
+							<div className="flex items-center space-x-2">
+								<input
+									type="radio"
+									id="posterior"
+									name="timeType"
+									value="posterior"
+									checked={formData.timeType === "posterior"}
+									onChange={(e) =>
+										handleInputChange("timeType", e.target.value)
+									}
+									className="w-4 h-4 text-slate-600 focus:ring-slate-500"
+								/>
+								<Label
+									htmlFor="posterior"
+									className="text-sm font-medium text-slate-700 dark:text-slate-300"
+								>
+									Tiempo posterior
+								</Label>
+							</div>
 						</div>
+
+						{/* Campos de tiempo (se muestran según la selección) */}
 						<div className="grid grid-cols-2 gap-2 sm:gap-3">
 							<Input
 								type="number"
 								min="1"
 								placeholder="Cantidad"
-								value={formData.posteriorValue}
-								onChange={(e) =>
-									handleInputChange("posteriorValue", e.target.value)
-								}
+								value={formData.timeValue}
+								onChange={(e) => handleInputChange("timeValue", e.target.value)}
 								className="text-center text-sm sm:text-base"
+								required={formData.timeType === "anticipation"}
 							/>
 							<Select
-								value={formData.posteriorUnit}
-								onValueChange={(value) =>
-									handleInputChange("posteriorUnit", value)
-								}
+								value={formData.timeUnit}
+								onValueChange={(unit) => handleInputChange("timeUnit", unit)}
 							>
 								<SelectTrigger className="text-center text-sm sm:text-base">
 									<SelectValue />
@@ -206,6 +209,13 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 									<SelectItem value="hours">Horas</SelectItem>
 								</SelectContent>
 							</Select>
+						</div>
+
+						{/* Descripción del tipo seleccionado */}
+						<div className="text-xs text-slate-500 dark:text-slate-400">
+							{formData.timeType === "anticipation"
+								? "La alarma se activará antes del tiempo objetivo"
+								: "La alarma se activará después del tiempo objetivo"}
 						</div>
 					</div>
 
@@ -229,44 +239,79 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 								htmlFor="repetitive"
 								className="text-xs sm:text-sm text-slate-600 dark:text-slate-300"
 							>
-								Repetir cada hora en los minutos seleccionados
+								Repetir cada hora usando los minutos y segundos de la hora
+								objetivo
 							</Label>
 						</div>
 						{formData.isRepetitive && (
 							<div className="space-y-2">
-								<Label className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-									Seleccionar minutos (ej: 00:10, 01:10, 02:10...)
-								</Label>
-								<div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 gap-1 sm:gap-2">
-									{Array.from({ length: 60 }, (_, i) => (
-										<button
-											key={i}
-											type="button"
-											onClick={() => {
-												const minutes = formData.repetitiveMinutes;
-												const newMinutes = minutes.includes(i)
-													? minutes.filter((m) => m !== i)
-													: [...minutes, i];
-												handleInputChange(
-													"repetitiveMinutes",
-													JSON.stringify(newMinutes),
-												);
-											}}
-											className={`p-1 sm:p-2 text-xs rounded border transition-all duration-200 ${
-												formData.repetitiveMinutes.includes(i)
-													? "bg-slate-600 text-white border-slate-600 shadow-md"
-													: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 hover:shadow-sm"
-											}`}
-										>
-											{i.toString().padStart(2, "0")}
-										</button>
-									))}
-								</div>
-								{formData.repetitiveMinutes.length > 0 && (
-									<div className="text-xs text-slate-500 dark:text-slate-400">
-										Seleccionados: {formData.repetitiveMinutes.length} minutos
+								<div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-600">
+									<div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-2">
+										<strong>Base de repetición:</strong>{" "}
+										{formData.targetHour.padStart(2, "0")}:
+										{formData.targetMinute.padStart(2, "0")}:
+										{formData.targetSecond.padStart(2, "0")}
 									</div>
-								)}
+									<div className="text-xs text-slate-500 dark:text-slate-400">
+										La alarma se repetirá cada hora a los{" "}
+										{formData.targetMinute.padStart(2, "0")}:
+										{formData.targetSecond.padStart(2, "0")} minutos
+									</div>
+									<div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+										Ejemplo: {formData.targetHour.padStart(2, "0")}:
+										{formData.targetMinute.padStart(2, "0")}:
+										{formData.targetSecond.padStart(2, "0")},{" "}
+										{(parseInt(formData.targetHour) + 1)
+											.toString()
+											.padStart(2, "0")}
+										:{formData.targetMinute.padStart(2, "0")}:
+										{formData.targetSecond.padStart(2, "0")}, etc.
+									</div>
+								</div>
+
+								{/* Selector de horas para repetir */}
+								<div className="space-y-2">
+									<Label className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+										Seleccionar horas para repetir (opcional - si no selecciona
+										ninguna, se repetirá en todas las horas)
+									</Label>
+									<div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-12 gap-1 sm:gap-2">
+										{Array.from({ length: 24 }, (_, i) => (
+											<button
+												key={i}
+												type="button"
+												onClick={() => {
+													const hours = formData.repetitiveMinutes; // Reutilizamos este array para las horas
+													const newHours = hours.includes(i)
+														? hours.filter((h) => h !== i)
+														: [...hours, i];
+													handleInputChange(
+														"repetitiveMinutes",
+														JSON.stringify(newHours),
+													);
+												}}
+												className={`p-1 sm:p-2 text-xs rounded border transition-all duration-200 ${
+													formData.repetitiveMinutes.includes(i)
+														? "bg-slate-600 text-white border-slate-600 shadow-md"
+														: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 hover:shadow-sm"
+												}`}
+											>
+												{i.toString().padStart(2, "0")}
+											</button>
+										))}
+									</div>
+									{formData.repetitiveMinutes.length > 0 && (
+										<div className="text-xs text-slate-500 dark:text-slate-400">
+											Horas seleccionadas: {formData.repetitiveMinutes.length}{" "}
+											de 24
+										</div>
+									)}
+									{formData.repetitiveMinutes.length === 0 && (
+										<div className="text-xs text-slate-500 dark:text-slate-400">
+											Se repetirá en todas las horas del día
+										</div>
+									)}
+								</div>
 							</div>
 						)}
 					</div>

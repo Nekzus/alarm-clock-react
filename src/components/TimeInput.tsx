@@ -1,5 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface TimeInputProps {
@@ -76,6 +78,33 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 		) {
 			e.preventDefault();
 		}
+
+		// Manejar flechas arriba y abajo
+		if (e.key === "ArrowUp") {
+			e.preventDefault();
+			increment();
+		} else if (e.key === "ArrowDown") {
+			e.preventDefault();
+			decrement();
+		}
+	};
+
+	const increment = () => {
+		const currentValue = parseInt(inputValue) || 0;
+		const newValue = currentValue >= max ? min : currentValue + 1;
+		const paddedValue = newValue.toString().padStart(2, "0");
+		setInputValue(paddedValue);
+		onChange(paddedValue);
+		setIsValid(true);
+	};
+
+	const decrement = () => {
+		const currentValue = parseInt(inputValue) || 0;
+		const newValue = currentValue <= min ? max : currentValue - 1;
+		const paddedValue = newValue.toString().padStart(2, "0");
+		setInputValue(paddedValue);
+		onChange(paddedValue);
+		setIsValid(true);
 	};
 
 	return (
@@ -83,20 +112,42 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 			<Label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
 				{label}
 			</Label>
-			<Input
-				type="text"
-				value={inputValue}
-				onChange={handleChange}
-				onBlur={handleBlur}
-				onKeyDown={handleKeyDown}
-				placeholder={placeholder}
-				className={`text-center text-sm sm:text-base font-mono transition-all duration-200 ${
-					isValid
-						? "border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700"
-						: "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-700"
-				}`}
-				maxLength={2}
-			/>
+			<div className="relative">
+				<Input
+					type="text"
+					value={inputValue}
+					onChange={handleChange}
+					onBlur={handleBlur}
+					onKeyDown={handleKeyDown}
+					placeholder={placeholder}
+					className={`text-center text-sm sm:text-base font-mono transition-all duration-200 pr-8 ${
+						isValid
+							? "border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700"
+							: "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-700"
+					}`}
+					maxLength={2}
+				/>
+				<div className="absolute right-1 top-0 h-full flex flex-col">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={increment}
+						className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-t-sm"
+					>
+						<ChevronUp className="w-3 h-3" />
+					</Button>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={decrement}
+						className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-b-sm"
+					>
+						<ChevronDown className="w-3 h-3" />
+					</Button>
+				</div>
+			</div>
 			{!isValid && (
 				<p className="text-xs text-red-500 animate-pulse">
 					Debe ser un número entre {min} y {max}
