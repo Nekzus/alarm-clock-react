@@ -1,6 +1,6 @@
+import { Bell, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Zap } from "lucide-react";
 import { AlarmForm } from "./components/AlarmForm";
 import { AlarmModal } from "./components/AlarmModal";
 import { AlarmStatus } from "./components/AlarmStatus";
@@ -83,17 +83,16 @@ function App() {
 						</span>
 					</div>
 				</div>
-					</footer>
-				</div>
+			</footer>
 
-				{/* Modal de alarma */}
-				<AlarmModal
-					isOpen={showAlarmModal}
-					onClose={closeAlarmModal}
-					targetTime={alarmState.targetTime}
-					alarmType={alarmType}
-				/>
-			</div>
+			{/* Modal de alarma */}
+			<AlarmModal
+				isOpen={showAlarmModal}
+				onClose={closeAlarmModal}
+				targetTime={alarmState.targetTime}
+				alarmType={alarmType}
+			/>
+		</div>
 		);
 	}
 

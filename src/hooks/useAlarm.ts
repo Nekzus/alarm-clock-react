@@ -172,7 +172,7 @@ export const useAlarm = () => {
         // Mostrar modal de alarma
         setShowAlarmModal(true);
         setAlarmType(alarmState.targetTime ? "anticipation" : "posterior");
-        
+
         // Detener la alarma
         stopAlarm();
     }, [stopAlarm, alarmState.targetTime]);
