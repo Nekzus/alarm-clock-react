@@ -5,19 +5,19 @@ import type { ClockState } from "../types";
 let globalInitialized = false;
 
 // Detectar si estamos en modo desarrollo - usar múltiples métodos para mayor confiabilidad
-const isDevelopment = import.meta.env.DEV || 
-                     import.meta.env.MODE === 'development' || 
-                     (typeof window !== 'undefined' && (
-                       window.location.hostname === 'localhost' ||
-                       window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname.includes('localhost')
-                     ));
+const isDevelopment =
+  import.meta.env.DEV ||
+  import.meta.env.MODE === "development" ||
+  (typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.includes("localhost")));
 
 console.log("🔍 Environment check:", {
   DEV: import.meta.env.DEV,
   MODE: import.meta.env.MODE,
-  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
-  isDevelopment
+  hostname: typeof window !== "undefined" ? window.location.hostname : "server",
+  isDevelopment,
 });
 
 interface TimeServerResponse {
