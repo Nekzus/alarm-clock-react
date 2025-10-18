@@ -59,7 +59,7 @@ body {
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -91,18 +91,18 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Nuevas variables para TailwindCSS 4 */
   --color-success: oklch(0.7 0.15 142);
   --color-warning: oklch(0.8 0.15 85);
   --color-info: oklch(0.7 0.15 240);
   --color-error: oklch(0.7 0.15 15);
-  
+
   /* Spacing personalizado */
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
   --spacing-128: 32rem;
-  
+
   /* Animaciones personalizadas */
   --animation-float: float 3s ease-in-out infinite;
   --animation-glow: glow 2s ease-in-out infinite;
@@ -190,7 +190,8 @@ body {
 
 /* Animaciones personalizadas optimizadas para TailwindCSS 4 */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -199,7 +200,8 @@ body {
 }
 
 @keyframes glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
   50% {
@@ -259,7 +261,9 @@ html {
 
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Utilidades de hover con custom variants */
@@ -267,7 +271,9 @@ html {
 
 /* Estilos específicos para modo oscuro */
 .dark .hover-lift:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
 /* Nuevos efectos optimizados */

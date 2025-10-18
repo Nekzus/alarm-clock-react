@@ -1,3 +1,5 @@
+import { AlarmClock, Bell, CheckCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,8 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/modal";
-import { AlarmClock, Bell, CheckCircle } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
 
 interface AlarmModalProps {
   isOpen: boolean;

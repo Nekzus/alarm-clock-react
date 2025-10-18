@@ -1,3 +1,5 @@
+import { AlarmClock, Clock, Repeat, Settings, Timer } from "lucide-react";
+import { useId } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlarmClock, Clock, Repeat, Settings, Timer } from "lucide-react";
-import { useId } from "react";
 import { useAlarmForm } from "../hooks/useAlarmForm";
 import type { AlarmConfig, ValidationError } from "../types";
 import { NumberInput } from "./NumberInput";

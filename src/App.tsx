@@ -1,7 +1,7 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Zap } from "lucide-react";
 import { memo, useId, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlarmForm } from "./components/AlarmForm";
 import { AlarmModal } from "./components/AlarmModal";
 import { AlarmStatus } from "./components/AlarmStatus";
