@@ -4,15 +4,20 @@ import type { ClockState } from "../types";
 // Variable global para evitar múltiples inicializaciones
 let globalInitialized = false;
 
-// Detectar si estamos en modo desarrollo - deshabilitar API calls en desarrollo
-// TODO: Restaurar detección automática cuando se resuelva el problema de rate limiting
-const isDevelopment = true; // Forzar modo desarrollo para evitar rate limiting
+// Detectar si estamos en modo desarrollo - usar múltiples métodos para mayor confiabilidad
+const isDevelopment = import.meta.env.DEV || 
+                     import.meta.env.MODE === 'development' || 
+                     (typeof window !== 'undefined' && (
+                       window.location.hostname === 'localhost' ||
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('localhost')
+                     ));
 
 console.log("🔍 Environment check:", {
   DEV: import.meta.env.DEV,
   MODE: import.meta.env.MODE,
-  hostname: window.location.hostname,
-  isDevelopment: true,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
+  isDevelopment
 });
 
 interface TimeServerResponse {
@@ -82,7 +87,7 @@ export const useClock = () => {
 
     // Función para obtener la hora del servidor con múltiples intentos
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Retry logic with multiple servers naturally has high complexity
-    const fetchServerTime = async (retries = 3): Promise<Date | null> => {
+    const fetchServerTime = async (retries = 2): Promise<Date | null> => {
       const servers = [
         "https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires",
         "https://timeapi.io/api/Time/current/zone?timeZone=America/Argentina/Buenos_Aires",
@@ -114,8 +119,8 @@ export const useClock = () => {
     let offset = 0;
     let lastServerSync = 0;
     let syncAttempts = 0;
-    const SYNC_INTERVAL = 300000; // Sincronizar cada 5 minutos
-    const MAX_SYNC_ATTEMPTS = 3;
+    const SYNC_INTERVAL = 600000; // Sincronizar cada 10 minutos para evitar rate limiting
+    const MAX_SYNC_ATTEMPTS = 2;
 
     const updateTime = () => {
       const now = new Date();
@@ -223,7 +228,7 @@ export const useClock = () => {
     if (!isDevelopment) {
       syncInterval = setInterval(() => {
         syncWithServer(false);
-      }, 300000); // Verificar cada 5 minutos para evitar rate limiting
+      }, 600000); // Verificar cada 10 minutos para evitar rate limiting
     }
 
     // Resetear contador de intentos cada 5 minutos
