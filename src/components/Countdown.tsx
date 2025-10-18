@@ -15,6 +15,12 @@ export const Countdown: React.FC<CountdownProps> = ({ alarmState }) => {
 
 	const { hours, minutes, seconds } = alarmState.countdown;
 
+	// Validar que los valores sean números válidos
+	if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+		console.warn('Countdown values are NaN:', { hours, minutes, seconds });
+		return null;
+	}
+
 	return (
 		<Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-200 dark:border-red-800 shadow-lg relative overflow-hidden">
 			<div className="absolute inset-0 bg-gradient-to-r from-red-200/30 via-orange-200/30 to-yellow-200/30 dark:from-red-800/20 dark:via-orange-800/20 dark:to-yellow-800/20 animate-pulse"></div>

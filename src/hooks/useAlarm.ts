@@ -131,30 +131,6 @@ export const useAlarm = () => {
         alert('🚨 ¡ALARMA! 🚨\n\n¡Es hora de tu alarma configurada!');
     }, []);
 
-    const updateCountdown = useCallback(() => {
-        setAlarmState(prev => {
-            if (!prev.alarmTime) return prev;
-
-            const now = new Date();
-            const timeDiff = prev.alarmTime.getTime() - now.getTime();
-
-            if (timeDiff <= 0) {
-                // Programar la activación de la alarma para el siguiente tick
-                setTimeout(() => triggerAlarm(), 0);
-                return prev;
-            }
-
-            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-
-            return {
-                ...prev,
-                countdown: { hours, minutes, seconds }
-            };
-        });
-    }, [triggerAlarm]);
-
     const stopAlarm = useCallback(() => {
         if (countdownIntervalRef.current) {
             clearInterval(countdownIntervalRef.current);
@@ -179,6 +155,30 @@ export const useAlarm = () => {
         // Detener la alarma
         stopAlarm();
     }, [stopAlarm, alarmState.targetTime]);
+
+    const updateCountdown = useCallback(() => {
+        setAlarmState(prev => {
+            if (!prev.alarmTime) return prev;
+
+            const now = new Date();
+            const timeDiff = prev.alarmTime.getTime() - now.getTime();
+
+            if (timeDiff <= 0) {
+                // Programar la activación de la alarma para el siguiente tick
+                setTimeout(() => triggerAlarm(), 0);
+                return prev;
+            }
+
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            return {
+                ...prev,
+                countdown: { hours, minutes, seconds }
+            };
+        });
+    }, [triggerAlarm]);
 
     const setAlarm = useCallback((config: AlarmConfig) => {
         setError(null);
