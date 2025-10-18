@@ -128,32 +128,38 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 
 	return (
 		<Card className="w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-lg">
-					<CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-700 dark:to-slate-800 text-white rounded-t-lg">
-						<CardTitle className="text-center text-lg sm:text-xl font-bold flex items-center justify-center gap-2 sm:gap-3">
-							<AlarmClock className="w-5 h-5 sm:w-6 sm:h-6" />
-							Configurar Alarma
-						</CardTitle>
-						
-						{/* Indicador de configuración guardada */}
-						{lastAlarmConfig && (
-							<div className="mt-3 p-2 bg-white/20 rounded-lg border border-white/30">
-								<div className="text-xs sm:text-sm text-center">
-									<div className="font-medium mb-1">📋 Última configuración guardada:</div>
-									<div className="text-white/90">
-										{lastAlarmConfig.targetTime.hour.toString().padStart(2, "0")}:
-										{lastAlarmConfig.targetTime.minute.toString().padStart(2, "0")}:
-										{lastAlarmConfig.targetTime.second.toString().padStart(2, "0")} 
-										{lastAlarmConfig.anticipationValue > 0 && (
-											<span> - {lastAlarmConfig.anticipationValue} {lastAlarmConfig.anticipationUnit}</span>
-										)}
-										{lastAlarmConfig.isRepetitive && (
-											<span className="ml-1">🔄</span>
-										)}
-									</div>
-								</div>
+			<CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-700 dark:to-slate-800 text-white rounded-t-lg">
+				<CardTitle className="text-center text-lg sm:text-xl font-bold flex items-center justify-center gap-2 sm:gap-3">
+					<AlarmClock className="w-5 h-5 sm:w-6 sm:h-6" />
+					Configurar Alarma
+				</CardTitle>
+
+				{/* Indicador de configuración guardada */}
+				{lastAlarmConfig && (
+					<div className="mt-3 p-2 bg-white/20 rounded-lg border border-white/30">
+						<div className="text-xs sm:text-sm text-center">
+							<div className="font-medium mb-1">
+								📋 Última configuración guardada:
 							</div>
-						)}
-					</CardHeader>
+							<div className="text-white/90">
+								{lastAlarmConfig.targetTime.hour.toString().padStart(2, "0")}:
+								{lastAlarmConfig.targetTime.minute.toString().padStart(2, "0")}:
+								{lastAlarmConfig.targetTime.second.toString().padStart(2, "0")}
+								{lastAlarmConfig.anticipationValue > 0 && (
+									<span>
+										{" "}
+										- {lastAlarmConfig.anticipationValue}{" "}
+										{lastAlarmConfig.anticipationUnit}
+									</span>
+								)}
+								{lastAlarmConfig.isRepetitive && (
+									<span className="ml-1">🔄</span>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
+			</CardHeader>
 			<CardContent className="p-4 sm:p-6">
 				<form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
 					{/* Hora objetivo */}
@@ -435,7 +441,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 								<span className="sm:hidden">Detener</span>
 							</Button>
 						)}
-						
+
 						{/* Botón de repetir última configuración */}
 						{lastAlarmConfig && !isActive && (
 							<Button

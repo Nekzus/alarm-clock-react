@@ -45,14 +45,32 @@ export const AlarmStatus: React.FC<AlarmStatusProps> = ({ alarmState }) => {
 				</div>
 
 				{alarmState.isActive && alarmState.targetTime && (
-					<Badge variant="outline" className="text-xs">
-						Objetivo:{" "}
-						{alarmState.targetTime.toLocaleTimeString("es-ES", {
-							hour: "2-digit",
-							minute: "2-digit",
-							second: "2-digit",
-						})}
-					</Badge>
+					<div className="space-y-2">
+						<Badge variant="outline" className="text-xs">
+							Objetivo:{" "}
+							{alarmState.targetTime.toLocaleTimeString("es-ES", {
+								hour: "2-digit",
+								minute: "2-digit",
+								second: "2-digit",
+							})}
+						</Badge>
+						
+						{alarmState.isRepetitive && alarmState.alarmTimes.length > 0 && (
+							<div className="text-xs text-slate-600 dark:text-slate-400">
+								<div className="font-medium mb-1">🔄 Alarma repetitiva activa</div>
+								<div>
+									Alarma {alarmState.currentAlarmIndex + 1} de {alarmState.alarmTimes.length}
+								</div>
+								<div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+									Próxima: {alarmState.alarmTimes[alarmState.currentAlarmIndex + 1]?.toLocaleTimeString("es-ES", {
+										hour: "2-digit",
+										minute: "2-digit",
+										second: "2-digit",
+									}) || "N/A"}
+								</div>
+							</div>
+						)}
+					</div>
 				)}
 			</CardContent>
 		</Card>

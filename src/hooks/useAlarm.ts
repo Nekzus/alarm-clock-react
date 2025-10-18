@@ -5,8 +5,11 @@ export const useAlarm = () => {
     const [alarmState, setAlarmState] = useState<AlarmState>({
         isActive: false,
         alarmTime: null,
+        alarmTimes: [],
         targetTime: null,
         countdown: null,
+        isRepetitive: false,
+        currentAlarmIndex: 0,
     });
 
     const [error, setError] = useState<ValidationError | null>(null);
@@ -78,6 +81,49 @@ export const useAlarm = () => {
         return new Date(targetDate.getTime() - anticipationMs);
     }, []);
 
+    const calculateRepetitiveAlarmTimes = useCallback((config: AlarmConfig): Date[] => {
+        const now = new Date();
+        const alarmTimes: Date[] = [];
+        
+        // Calcular tiempo de anticipación en milisegundos
+        let anticipationMs = config.anticipationValue;
+        switch (config.anticipationUnit) {
+            case 'seconds':
+                anticipationMs *= 1000;
+                break;
+            case 'minutes':
+                anticipationMs *= 60 * 1000;
+                break;
+            case 'hours':
+                anticipationMs *= 60 * 60 * 1000;
+                break;
+        }
+
+        // Si hay horas específicas seleccionadas, usar solo esas
+        const hoursToUse = config.repetitiveMinutes && config.repetitiveMinutes.length > 0 
+            ? config.repetitiveMinutes 
+            : Array.from({ length: 24 }, (_, i) => i);
+
+        // Calcular alarmas para las próximas 24 horas
+        for (let dayOffset = 0; dayOffset < 2; dayOffset++) {
+            for (const hour of hoursToUse) {
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + dayOffset);
+                targetDate.setHours(hour, config.targetTime.minute, config.targetTime.second, 0);
+                
+                const alarmTime = new Date(targetDate.getTime() - anticipationMs);
+                
+                // Solo agregar alarmas futuras
+                if (alarmTime > now) {
+                    alarmTimes.push(alarmTime);
+                }
+            }
+        }
+
+        // Ordenar por tiempo y tomar solo las próximas 24 alarmas
+        return alarmTimes.sort((a, b) => a.getTime() - b.getTime()).slice(0, 24);
+    }, []);
+
     const playAlarmSound = useCallback(() => {
         if (!audioContextRef.current) return;
 
@@ -141,8 +187,11 @@ export const useAlarm = () => {
         setAlarmState({
             isActive: false,
             alarmTime: null,
+            alarmTimes: [],
             targetTime: null,
             countdown: null,
+            isRepetitive: false,
+            currentAlarmIndex: 0,
         });
 
         setError(null);
@@ -153,19 +202,36 @@ export const useAlarm = () => {
         setShowAlarmModal(true);
         setAlarmType(alarmState.targetTime ? "anticipation" : "posterior");
 
-        // Pausar el countdown pero mantener la configuración
-        setAlarmState(prev => ({
-            ...prev,
-            isActive: false,
-            countdown: null,
-        }));
+        setAlarmState(prev => {
+            if (prev.isRepetitive && prev.alarmTimes.length > prev.currentAlarmIndex + 1) {
+                // Hay más alarmas repetitivas, pasar a la siguiente
+                const nextIndex = prev.currentAlarmIndex + 1;
+                const nextAlarmTime = prev.alarmTimes[nextIndex];
+                
+                return {
+                    ...prev,
+                    alarmTime: nextAlarmTime,
+                    currentAlarmIndex: nextIndex,
+                    countdown: null,
+                };
+            } else {
+                // No hay más alarmas, pausar completamente
+                return {
+                    ...prev,
+                    isActive: false,
+                    countdown: null,
+                };
+            }
+        });
 
-        // Limpiar el intervalo pero mantener la configuración guardada
-        if (countdownIntervalRef.current) {
-            clearInterval(countdownIntervalRef.current);
-            countdownIntervalRef.current = null;
+        // Limpiar el intervalo si no hay más alarmas
+        if (!alarmState.isRepetitive || alarmState.currentAlarmIndex >= alarmState.alarmTimes.length - 1) {
+            if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+            }
         }
-    }, [alarmState.targetTime]);
+    }, [alarmState.targetTime, alarmState.isRepetitive, alarmState.alarmTimes, alarmState.currentAlarmIndex]);
 
     const updateCountdown = useCallback(() => {
         setAlarmState(prev => {
@@ -207,7 +273,24 @@ export const useAlarm = () => {
         }
 
         // Calcular tiempo de alarma
-        const alarmTime = calculateAlarmTime(config);
+        let alarmTime: Date;
+        let alarmTimes: Date[] = [];
+        let isRepetitive = false;
+
+        if (config.isRepetitive) {
+            // Para alarmas repetitivas, calcular múltiples tiempos
+            alarmTimes = calculateRepetitiveAlarmTimes(config);
+            if (alarmTimes.length === 0) {
+                setError({ field: 'time', message: 'No hay alarmas futuras disponibles con la configuración repetitiva.' });
+                return false;
+            }
+            alarmTime = alarmTimes[0]; // Usar la primera alarma para el countdown
+            isRepetitive = true;
+        } else {
+            // Para alarmas normales
+            alarmTime = calculateAlarmTime(config);
+        }
+
         const now = new Date();
 
         // Verificar que la alarma no sea en el pasado
@@ -226,8 +309,11 @@ export const useAlarm = () => {
         setAlarmState({
             isActive: true,
             alarmTime,
+            alarmTimes,
             targetTime: targetDate,
             countdown: null,
+            isRepetitive,
+            currentAlarmIndex: 0,
         });
 
         // Guardar la configuración para poder repetirla

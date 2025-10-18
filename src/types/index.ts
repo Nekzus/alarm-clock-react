@@ -17,12 +17,15 @@ export interface AlarmConfig {
 export interface AlarmState {
     isActive: boolean;
     alarmTime: Date | null;
+    alarmTimes: Date[]; // Para alarmas repetitivas
     targetTime: Date | null;
     countdown: {
         hours: number;
         minutes: number;
         seconds: number;
     } | null;
+    isRepetitive: boolean;
+    currentAlarmIndex: number; // Índice de la alarma actual
 }
 
 export interface ClockState {
