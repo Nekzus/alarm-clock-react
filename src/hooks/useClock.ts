@@ -114,13 +114,19 @@ export const useClock = () => {
 
     // Función para calcular el offset entre servidor y local
     const calculateOffset = (serverTime: Date, localTime: Date): number => {
-      return serverTime.getTime() - localTime.getTime();
+      const offset = serverTime.getTime() - localTime.getTime();
+      // Validar que el offset sea un número válido y razonable
+      if (Number.isNaN(offset) || Math.abs(offset) > 24 * 60 * 60 * 1000) {
+        console.warn(`⚠️ Offset inválido: ${offset}ms, usando 0`);
+        return 0;
+      }
+      return offset;
     };
     let offset = 0;
     let lastServerSync = 0;
     let syncAttempts = 0;
-    const SYNC_INTERVAL = 600000; // Sincronizar cada 10 minutos para evitar rate limiting
-    const MAX_SYNC_ATTEMPTS = 2;
+    const SYNC_INTERVAL = 1800000; // Sincronizar cada 30 minutos para evitar rate limiting
+    const MAX_SYNC_ATTEMPTS = 1; // Solo un intento para evitar spam
 
     const updateTime = () => {
       const now = new Date();
@@ -173,26 +179,15 @@ export const useClock = () => {
         const localTime = new Date();
         const newOffset = calculateOffset(serverTime, localTime);
 
-        // Validar que el offset sea un número válido
-        if (Number.isNaN(newOffset)) {
-          console.warn(`⚠️ Offset inválido (NaN), manteniendo offset anterior`);
-          return;
-        }
+        // El calculateOffset ya valida el offset, así que podemos confiar en él
+        offset = newOffset;
+        lastServerSync = Date.now();
+        syncAttempts = 0; // Resetear contador de intentos
+        console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
 
-        // Solo actualizar si el offset es razonable
-        if (Math.abs(newOffset) < 24 * 60 * 60 * 1000) {
-          // Menos de 24 horas
-          offset = newOffset;
-          lastServerSync = Date.now();
-          syncAttempts = 0; // Resetear contador de intentos
-          console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
-
-          // Actualizar estados de manera funcional
-          setLastSync(new Date());
-          setIsOnline(true);
-        } else {
-          console.warn(`⚠️ Offset demasiado grande: ${newOffset}ms, manteniendo offset anterior`);
-        }
+        // Actualizar estados de manera funcional
+        setLastSync(new Date());
+        setIsOnline(true);
       } else if (isMounted) {
         console.warn(`❌ Fallo en sincronización #${syncAttempts}`);
         setIsOnline(false);
@@ -212,7 +207,7 @@ export const useClock = () => {
         if (isMounted) {
           syncWithServer(true);
         }
-      }, 1000);
+      }, 5000); // Delay de 5 segundos para evitar sincronización inmediata
     } else {
       console.log("🚫 Modo desarrollo: omitiendo sincronización inicial para evitar rate limiting");
     }
@@ -228,7 +223,7 @@ export const useClock = () => {
     if (!isDevelopment) {
       syncInterval = setInterval(() => {
         syncWithServer(false);
-      }, 600000); // Verificar cada 10 minutos para evitar rate limiting
+      }, 1800000); // Verificar cada 30 minutos para evitar rate limiting
     }
 
     // Resetear contador de intentos cada 5 minutos
