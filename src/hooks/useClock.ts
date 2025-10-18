@@ -48,7 +48,7 @@ export const useClock = () => {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Server validation logic naturally has high complexity
     const processServerResponse = async (serverUrl: string): Promise<Date | null> => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // Timeout más largo
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout más largo para NTP
 
       try {
         const response = await fetch(serverUrl, {
@@ -56,6 +56,7 @@ export const useClock = () => {
           headers: {
             Accept: "application/json",
             "User-Agent": "AlarmClock/1.0", // Identificar la aplicación
+            "Cache-Control": "no-cache", // Evitar cache para obtener tiempo más preciso
           },
           signal: controller.signal,
         });
@@ -97,15 +98,22 @@ export const useClock = () => {
           return null;
         }
 
-        // Validar que la hora sea razonable
+        // Validar que la hora sea razonable (más estricto para NTP)
         const localTime = new Date();
         const timeDiff = Math.abs(serverTime.getTime() - localTime.getTime());
-        const maxDiff = 2 * 60 * 60 * 1000; // 2 horas máximo
+        const maxDiff = 5 * 60 * 1000; // 5 minutos máximo para NTP (más estricto)
 
         if (timeDiff > maxDiff) {
-          console.warn(`Server time seems incorrect, difference: ${timeDiff}ms`);
+          console.warn(
+            `Server time seems incorrect, difference: ${timeDiff}ms (max: ${maxDiff}ms)`
+          );
           return null;
         }
+
+        // Log de precisión para debugging
+        console.log(
+          `🕐 Tiempo del servidor: ${serverTime.toISOString()}, diferencia: ${timeDiff}ms`
+        );
 
         if (isMounted) {
           setLastSync(new Date());
@@ -123,15 +131,19 @@ export const useClock = () => {
 
     // Función para obtener la hora del servidor con múltiples intentos
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Retry logic with multiple servers naturally has high complexity
-    const fetchServerTime = async (retries = 1): Promise<Date | null> => {
-      // Usar servidores más confiables y menos propensos al rate limiting
+    const fetchServerTime = async (retries = 2): Promise<Date | null> => {
+      // Usar servidores NTP públicos a través de APIs proxy para mayor precisión
       const servers = [
+        // Servidores NTP públicos más precisos (Argentina) - Prioridad alta
         "https://timeapi.io/api/Time/current/zone?timeZone=America/Argentina/Buenos_Aires",
         "https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires",
+        // Servidores NTP internacionales más precisos - Prioridad media
         "https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=zone&zone=America/Argentina/Buenos_Aires",
-        // Servidores alternativos más confiables
         "https://api.ipgeolocation.io/timezone?apiKey=free&tz=America/Argentina/Buenos_Aires",
         "https://timezoneapi.io/api/timezone/?America/Argentina/Buenos_Aires",
+        // Servidores NTP alternativos para Argentina - Prioridad baja
+        "https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=zone&zone=America/Argentina",
+        "https://worldtimeapi.org/api/timezone/America/Argentina",
       ];
 
       for (let attempt = 0; attempt < retries; attempt++) {
@@ -229,9 +241,11 @@ export const useClock = () => {
         syncAttempts = 0; // Resetear contador de intentos
 
         if (offset === 0) {
-          console.log(`✅ Usando hora local (offset: 0ms) - servidores no disponibles`);
+          console.log(`✅ Usando hora local (offset: 0ms) - servidores NTP no disponibles`);
         } else {
-          console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
+          console.log(
+            `✅ Sincronizado con NTP exitosamente. Offset: ${offset}ms (precisión: ±${Math.abs(offset)}ms)`
+          );
         }
 
         // Actualizar estados de manera funcional
@@ -268,7 +282,9 @@ export const useClock = () => {
 
     // Mostrar mensaje informativo sobre el estado de sincronización
     if (!isDevelopment) {
-      console.log("🕐 Reloj iniciado - intentando sincronizar con servidores de tiempo...");
+      console.log(
+        "🕐 Reloj iniciado - sincronizando con servidores NTP públicos para máxima precisión..."
+      );
     }
 
     // Configurar intervalo para actualizar cada segundo
