@@ -43,12 +43,15 @@ export const useClock = () => {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Server validation logic naturally has high complexity
     const processServerResponse = async (serverUrl: string): Promise<Date | null> => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // Timeout más largo
 
       try {
         const response = await fetch(serverUrl, {
           method: "GET",
-          headers: { Accept: "application/json" },
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "AlarmClock/1.0", // Identificar la aplicación
+          },
           signal: controller.signal,
         });
 
@@ -59,12 +62,25 @@ export const useClock = () => {
         }
 
         const data: TimeServerResponse = await response.json();
+
+        // Validar que tenemos los datos necesarios
+        if (!data.datetime) {
+          console.warn(`Servidor ${serverUrl} no devolvió datetime válido`);
+          return null;
+        }
+
         const serverTime = new Date(data.datetime);
+
+        // Validar que la fecha sea válida
+        if (Number.isNaN(serverTime.getTime())) {
+          console.warn(`Servidor ${serverUrl} devolvió fecha inválida: ${data.datetime}`);
+          return null;
+        }
 
         // Validar que la hora sea razonable
         const localTime = new Date();
         const timeDiff = Math.abs(serverTime.getTime() - localTime.getTime());
-        const maxDiff = 60 * 60 * 1000; // 1 hora
+        const maxDiff = 2 * 60 * 60 * 1000; // 2 horas máximo
 
         if (timeDiff > maxDiff) {
           console.warn(`Server time seems incorrect, difference: ${timeDiff}ms`);
@@ -87,10 +103,11 @@ export const useClock = () => {
 
     // Función para obtener la hora del servidor con múltiples intentos
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Retry logic with multiple servers naturally has high complexity
-    const fetchServerTime = async (retries = 2): Promise<Date | null> => {
+    const fetchServerTime = async (retries = 1): Promise<Date | null> => {
+      // Usar APIs más confiables y menos propensas al rate limiting
       const servers = [
-        "https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires",
         "https://timeapi.io/api/Time/current/zone?timeZone=America/Argentina/Buenos_Aires",
+        "https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires",
         "https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=zone&zone=America/Argentina/Buenos_Aires",
       ];
 
@@ -125,7 +142,7 @@ export const useClock = () => {
     let offset = 0;
     let lastServerSync = 0;
     let syncAttempts = 0;
-    const SYNC_INTERVAL = 1800000; // Sincronizar cada 30 minutos para evitar rate limiting
+    const SYNC_INTERVAL = 3600000; // Sincronizar cada 1 hora para evitar rate limiting
     const MAX_SYNC_ATTEMPTS = 1; // Solo un intento para evitar spam
 
     const updateTime = () => {
@@ -207,7 +224,7 @@ export const useClock = () => {
         if (isMounted) {
           syncWithServer(true);
         }
-      }, 5000); // Delay de 5 segundos para evitar sincronización inmediata
+      }, 10000); // Delay de 10 segundos para evitar sincronización inmediata
     } else {
       console.log("🚫 Modo desarrollo: omitiendo sincronización inicial para evitar rate limiting");
     }
@@ -223,7 +240,7 @@ export const useClock = () => {
     if (!isDevelopment) {
       syncInterval = setInterval(() => {
         syncWithServer(false);
-      }, 1800000); // Verificar cada 30 minutos para evitar rate limiting
+      }, 3600000); // Verificar cada 1 hora para evitar rate limiting
     }
 
     // Resetear contador de intentos cada 5 minutos
