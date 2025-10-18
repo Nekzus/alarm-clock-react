@@ -294,17 +294,44 @@ export const useClock = () => {
     let syncInterval: number | null = null;
     if (!isDevelopment) {
       syncInterval = setInterval(() => {
-        syncWithServer(false);
-      }, 3600000); // Verificar cada 1 hora para evitar rate limiting
+        // Solo sincronizar si no hay una sincronización reciente
+        const timeSinceLastSync = Date.now() - lastServerSync;
+        if (timeSinceLastSync > 1800000) {
+          // Solo si han pasado más de 30 minutos
+          console.log("🔄 Sincronización periódica programada");
+          syncWithServer(false);
+        } else {
+          console.log("⏸️ Sincronización omitida - muy reciente");
+        }
+      }, 1800000); // Verificar cada 30 minutos para mejor balance
     }
 
-    // Resetear contador de intentos cada 5 minutos
+    // Sistema de reconexión automática inteligente
+    const smartReconnectionInterval = setInterval(
+      () => {
+        if (!isDevelopment && isMounted) {
+          const timeSinceLastSync = Date.now() - lastServerSync;
+          const hoursSinceSync = timeSinceLastSync / (1000 * 60 * 60);
+
+          // Reconectar automáticamente si han pasado más de 2 horas
+          if (hoursSinceSync > 2 && syncAttempts < 3) {
+            console.log(
+              `🔄 Reconexión automática - última sync hace ${Math.floor(hoursSinceSync)}h`
+            );
+            syncWithServer(false);
+          }
+        }
+      },
+      10 * 60 * 1000
+    ); // Verificar cada 10 minutos
+
+    // Resetear contador de intentos cada 30 minutos
     const resetInterval = setInterval(
       () => {
         syncAttempts = 0;
         console.log("🔄 Reseteando contador de intentos de sincronización");
       },
-      5 * 60 * 1000
+      30 * 60 * 1000
     );
 
     return () => {
@@ -316,6 +343,7 @@ export const useClock = () => {
       if (syncInterval) {
         clearInterval(syncInterval);
       }
+      clearInterval(smartReconnectionInterval);
       clearInterval(resetInterval);
     };
   }, []);

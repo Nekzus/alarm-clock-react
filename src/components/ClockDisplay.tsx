@@ -1,7 +1,7 @@
-import { Clock, Wifi, WifiOff } from "lucide-react";
-import type React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Clock, Wifi, WifiOff } from "lucide-react";
+import type React from "react";
 import type { ClockState } from "../types";
 
 interface ClockDisplayProps {
@@ -9,6 +9,7 @@ interface ClockDisplayProps {
 }
 
 export const ClockDisplay: React.FC<ClockDisplayProps> = ({ clockState }) => {
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Status logic naturally has high complexity
   const getSyncStatus = () => {
     if (!clockState.isOnline) {
       return {
@@ -33,21 +34,31 @@ export const ClockDisplay: React.FC<ClockDisplayProps> = ({ clockState }) => {
           bgColor: "bg-green-100 dark:bg-green-900/20",
           description: "Hora oficial argentina",
         };
-      } else if (secondsSinceSync < 120) {
+      } else if (secondsSinceSync < 300) {
+        // 5 minutos
         return {
           icon: <Wifi className="w-3 h-3" />,
-          text: `Sync hace ${secondsSinceSync}s`,
+          text: `Sync hace ${secondsSinceSync < 60 ? `${secondsSinceSync}s` : `${minutesSinceSync}m`}`,
           color: "text-yellow-500",
           bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
-          description: "Re-sincronizando...",
+          description: "Sincronización reciente",
         };
-      } else {
+      } else if (secondsSinceSync < 1800) {
+        // 30 minutos
         return {
           icon: <Wifi className="w-3 h-3" />,
           text: `Sync hace ${minutesSinceSync}m`,
           color: "text-orange-500",
           bgColor: "bg-orange-100 dark:bg-orange-900/20",
-          description: "Intentando reconectar",
+          description: "Sincronización estable",
+        };
+      } else {
+        return {
+          icon: <Wifi className="w-3 h-3" />,
+          text: `Sync hace ${minutesSinceSync}m`,
+          color: "text-red-500",
+          bgColor: "bg-red-100 dark:bg-red-900/20",
+          description: "Re-sincronizando automáticamente",
         };
       }
     }
