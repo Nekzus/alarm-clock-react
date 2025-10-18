@@ -10,6 +10,8 @@ export const useAlarm = () => {
     });
 
     const [error, setError] = useState<ValidationError | null>(null);
+    const [showAlarmModal, setShowAlarmModal] = useState(false);
+    const [alarmType, setAlarmType] = useState<"anticipation" | "posterior" | undefined>(undefined);
     const audioContextRef = useRef<AudioContext | null>(null);
     const countdownIntervalRef = useRef<number | null>(null);
 
@@ -167,10 +169,13 @@ export const useAlarm = () => {
     }, []);
 
     const triggerAlarm = useCallback(() => {
-        playAlarmSound();
-        showNotification();
+        // Mostrar modal de alarma
+        setShowAlarmModal(true);
+        setAlarmType(alarmState.targetTime ? "anticipation" : "posterior");
+        
+        // Detener la alarma
         stopAlarm();
-    }, [playAlarmSound, showNotification, stopAlarm]);
+    }, [stopAlarm, alarmState.targetTime]);
 
     const setAlarm = useCallback((config: AlarmConfig) => {
         setError(null);
@@ -233,10 +238,18 @@ export const useAlarm = () => {
         };
     }, [alarmState.isActive, alarmState.alarmTime, updateCountdown]);
 
+    const closeAlarmModal = useCallback(() => {
+        setShowAlarmModal(false);
+        setAlarmType(undefined);
+    }, []);
+
     return {
         alarmState,
         error,
         setAlarm,
         stopAlarm,
+        showAlarmModal,
+        alarmType,
+        closeAlarmModal,
     };
 };

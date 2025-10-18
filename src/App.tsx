@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Zap } from "lucide-react";
 import { AlarmForm } from "./components/AlarmForm";
+import { AlarmModal } from "./components/AlarmModal";
 import { AlarmStatus } from "./components/AlarmStatus";
 import { ClockDisplay } from "./components/ClockDisplay";
 import { Countdown } from "./components/Countdown";
@@ -11,7 +12,7 @@ import { useClock } from "./hooks/useClock";
 
 function App() {
 	const clockState = useClock();
-	const { alarmState, error, setAlarm, stopAlarm } = useAlarm();
+	const { alarmState, error, setAlarm, stopAlarm, showAlarmModal, alarmType, closeAlarmModal } = useAlarm();
 
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 relative">
@@ -82,9 +83,18 @@ function App() {
 						</span>
 					</div>
 				</div>
-			</footer>
-		</div>
-	);
-}
+					</footer>
+				</div>
 
-export default App;
+				{/* Modal de alarma */}
+				<AlarmModal
+					isOpen={showAlarmModal}
+					onClose={closeAlarmModal}
+					targetTime={alarmState.targetTime}
+					alarmType={alarmType}
+				/>
+			</div>
+		);
+	}
+
+	export default App;
