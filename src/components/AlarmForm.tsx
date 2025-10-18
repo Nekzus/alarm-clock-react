@@ -11,7 +11,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { AlarmClock, Clock, Repeat, Settings, Timer } from "lucide-react";
+import {
+	AlarmClock,
+	ChevronDown,
+	ChevronUp,
+	Clock,
+	Repeat,
+	Settings,
+	Timer,
+} from "lucide-react";
 import { useState } from "react";
 import type { AlarmConfig, AnticipationUnit, ValidationError } from "../types";
 import { TimeInput } from "./TimeInput";
@@ -45,6 +53,32 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 			...prev,
 			[field]: value,
 		}));
+	};
+
+	const handleCheckboxChange = (checked: boolean) => {
+		setFormData((prev) => ({
+			...prev,
+			isRepetitive: checked,
+		}));
+	};
+
+	const handleUnitChange = (unit: string) => {
+		// Resetear el valor a 1 cuando se cambia la unidad
+		handleInputChange("timeUnit", unit);
+		handleInputChange("timeValue", "1");
+	};
+
+	const handleHourSelection = (hour: number) => {
+		setFormData((prev) => {
+			const currentHours = prev.repetitiveMinutes;
+			const newHours = currentHours.includes(hour)
+				? currentHours.filter((h) => h !== hour)
+				: [...currentHours, hour];
+			return {
+				...prev,
+				repetitiveMinutes: newHours,
+			};
+		});
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -187,18 +221,57 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 
 						{/* Campos de tiempo (se muestran según la selección) */}
 						<div className="grid grid-cols-2 gap-2 sm:gap-3">
-							<Input
-								type="number"
-								min="1"
-								placeholder="Cantidad"
-								value={formData.timeValue}
-								onChange={(e) => handleInputChange("timeValue", e.target.value)}
-								className="text-center text-sm sm:text-base"
-								required={formData.timeType === "anticipation"}
-							/>
+							<div className="relative">
+								<Input
+									type="text"
+									value={formData.timeValue}
+									onChange={(e) =>
+										handleInputChange("timeValue", e.target.value)
+									}
+									placeholder={formData.timeValue === "" ? "Cantidad" : ""}
+									className="text-center text-sm sm:text-base font-mono transition-all duration-200 pr-8"
+									required={formData.timeType === "anticipation"}
+								/>
+								<div className="absolute right-1 top-0 h-full flex flex-col">
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={() => {
+											const currentValue = parseInt(formData.timeValue) || 0;
+											const unit = formData.timeUnit;
+											let max = 59;
+											if (unit === "hours") max = 23;
+											const newValue =
+												currentValue >= max ? 1 : currentValue + 1;
+											handleInputChange("timeValue", newValue.toString());
+										}}
+										className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-t-sm"
+									>
+										<ChevronUp className="w-3 h-3" />
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={() => {
+											const currentValue = parseInt(formData.timeValue) || 0;
+											const unit = formData.timeUnit;
+											let max = 59;
+											if (unit === "hours") max = 23;
+											const newValue =
+												currentValue <= 1 ? max : currentValue - 1;
+											handleInputChange("timeValue", newValue.toString());
+										}}
+										className="h-1/2 p-0 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-none rounded-b-sm"
+									>
+										<ChevronDown className="w-3 h-3" />
+									</Button>
+								</div>
+							</div>
 							<Select
 								value={formData.timeUnit}
-								onValueChange={(unit) => handleInputChange("timeUnit", unit)}
+								onValueChange={handleUnitChange}
 							>
 								<SelectTrigger className="text-center text-sm sm:text-base">
 									<SelectValue />
@@ -231,9 +304,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 							<Checkbox
 								id="repetitive"
 								checked={formData.isRepetitive}
-								onCheckedChange={(checked) =>
-									handleInputChange("isRepetitive", checked.toString())
-								}
+								onCheckedChange={handleCheckboxChange}
 							/>
 							<Label
 								htmlFor="repetitive"
@@ -248,24 +319,24 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 								<div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-600">
 									<div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-2">
 										<strong>Base de repetición:</strong>{" "}
-										{formData.targetHour.padStart(2, "0")}:
-										{formData.targetMinute.padStart(2, "0")}:
-										{formData.targetSecond.padStart(2, "0")}
+										{(formData.targetHour || "0").padStart(2, "0")}:
+										{(formData.targetMinute || "0").padStart(2, "0")}:
+										{(formData.targetSecond || "0").padStart(2, "0")}
 									</div>
 									<div className="text-xs text-slate-500 dark:text-slate-400">
 										La alarma se repetirá cada hora a los{" "}
-										{formData.targetMinute.padStart(2, "0")}:
-										{formData.targetSecond.padStart(2, "0")} minutos
+										{(formData.targetMinute || "0").padStart(2, "0")}:
+										{(formData.targetSecond || "0").padStart(2, "0")} minutos
 									</div>
 									<div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-										Ejemplo: {formData.targetHour.padStart(2, "0")}:
-										{formData.targetMinute.padStart(2, "0")}:
-										{formData.targetSecond.padStart(2, "0")},{" "}
-										{(parseInt(formData.targetHour) + 1)
+										Ejemplo: {(formData.targetHour || "0").padStart(2, "0")}:
+										{(formData.targetMinute || "0").padStart(2, "0")}:
+										{(formData.targetSecond || "0").padStart(2, "0")},{" "}
+										{(parseInt(formData.targetHour || "0") + 1)
 											.toString()
 											.padStart(2, "0")}
-										:{formData.targetMinute.padStart(2, "0")}:
-										{formData.targetSecond.padStart(2, "0")}, etc.
+										:{(formData.targetMinute || "0").padStart(2, "0")}:
+										{(formData.targetSecond || "0").padStart(2, "0")}, etc.
 									</div>
 								</div>
 
@@ -280,16 +351,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 											<button
 												key={i}
 												type="button"
-												onClick={() => {
-													const hours = formData.repetitiveMinutes; // Reutilizamos este array para las horas
-													const newHours = hours.includes(i)
-														? hours.filter((h) => h !== i)
-														: [...hours, i];
-													handleInputChange(
-														"repetitiveMinutes",
-														JSON.stringify(newHours),
-													);
-												}}
+												onClick={() => handleHourSelection(i)}
 												className={`p-1 sm:p-2 text-xs rounded border transition-all duration-200 ${
 													formData.repetitiveMinutes.includes(i)
 														? "bg-slate-600 text-white border-slate-600 shadow-md"

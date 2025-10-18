@@ -28,6 +28,8 @@ export interface AlarmState {
 export interface ClockState {
     currentTime: string;
     currentDate: Date;
+    isOnline: boolean;
+    lastSync: Date | null;
 }
 
 export type AnticipationUnit = 'seconds' | 'minutes' | 'hours';

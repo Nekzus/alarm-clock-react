@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, Wifi, WifiOff } from "lucide-react";
 import type React from "react";
 import type { ClockState } from "../types";
 
@@ -9,6 +9,47 @@ interface ClockDisplayProps {
 }
 
 export const ClockDisplay: React.FC<ClockDisplayProps> = ({ clockState }) => {
+	const getSyncStatus = () => {
+		if (!clockState.isOnline) {
+			return {
+				icon: <WifiOff className="w-3 h-3" />,
+				text: "Sin conexión",
+				color: "text-red-500",
+				bgColor: "bg-red-100 dark:bg-red-900/20",
+			};
+		}
+
+		if (clockState.lastSync) {
+			const timeSinceSync = Date.now() - clockState.lastSync.getTime();
+			const secondsSinceSync = Math.floor(timeSinceSync / 1000);
+
+			if (secondsSinceSync < 60) {
+				return {
+					icon: <Wifi className="w-3 h-3" />,
+					text: "Sincronizado",
+					color: "text-green-500",
+					bgColor: "bg-green-100 dark:bg-green-900/20",
+				};
+			} else {
+				return {
+					icon: <Wifi className="w-3 h-3" />,
+					text: `Sync hace ${secondsSinceSync}s`,
+					color: "text-yellow-500",
+					bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
+				};
+			}
+		}
+
+		return {
+			icon: <Wifi className="w-3 h-3" />,
+			text: "Sincronizando...",
+			color: "text-blue-500",
+			bgColor: "bg-blue-100 dark:bg-blue-900/20",
+		};
+	};
+
+	const syncStatus = getSyncStatus();
+
 	return (
 		<Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-lg relative overflow-hidden hover-lift">
 			<div className="absolute inset-0 bg-gradient-to-r from-slate-200/30 via-slate-300/30 to-slate-400/30 dark:from-slate-600/20 dark:via-slate-500/20 dark:to-slate-400/20 animate-pulse"></div>
@@ -16,7 +57,7 @@ export const ClockDisplay: React.FC<ClockDisplayProps> = ({ clockState }) => {
 				<div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
 					<Clock className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-slate-300" />
 					<h2 className="text-lg sm:text-xl font-semibold text-slate-700 dark:text-slate-200">
-						Hora Actual
+						Hora Oficial
 					</h2>
 				</div>
 				<div className="relative mb-4">
@@ -37,8 +78,19 @@ export const ClockDisplay: React.FC<ClockDisplayProps> = ({ clockState }) => {
 							day: "numeric",
 						})}
 					</Badge>
+
+					{/* Estado de sincronización */}
+					<div
+						className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs ${syncStatus.bgColor}`}
+					>
+						{syncStatus.icon}
+						<span className={`font-medium ${syncStatus.color}`}>
+							{syncStatus.text}
+						</span>
+					</div>
+
 					<div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-						Actualizado en tiempo real
+						Sincronizado con servidor oficial
 					</div>
 				</div>
 			</CardContent>
