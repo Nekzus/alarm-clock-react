@@ -58,9 +58,29 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 		}
 	};
 
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		// Permitir solo números, backspace, delete, tab, escape, enter
+		if (
+			!/[0-9]/.test(e.key) &&
+			![
+				"Backspace",
+				"Delete",
+				"Tab",
+				"Escape",
+				"Enter",
+				"ArrowLeft",
+				"ArrowRight",
+				"ArrowUp",
+				"ArrowDown",
+			].includes(e.key)
+		) {
+			e.preventDefault();
+		}
+	};
+
 	return (
 		<div className={`space-y-2 ${className}`}>
-			<Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+			<Label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
 				{label}
 			</Label>
 			<Input
@@ -68,16 +88,17 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 				value={inputValue}
 				onChange={handleChange}
 				onBlur={handleBlur}
+				onKeyDown={handleKeyDown}
 				placeholder={placeholder}
-				className={`text-center text-lg font-mono ${
+				className={`text-center text-sm sm:text-base font-mono transition-all duration-200 ${
 					isValid
-						? "border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400"
-						: "border-red-500 focus:border-red-500"
+						? "border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700"
+						: "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-700"
 				}`}
 				maxLength={2}
 			/>
 			{!isValid && (
-				<p className="text-xs text-red-500">
+				<p className="text-xs text-red-500 animate-pulse">
 					Debe ser un número entre {min} y {max}
 				</p>
 			)}

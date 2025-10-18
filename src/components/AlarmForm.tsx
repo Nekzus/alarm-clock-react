@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,9 +11,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { AlarmClock, Settings } from "lucide-react";
+import { AlarmClock, Clock, Repeat, Settings, Timer } from "lucide-react";
 import { useState } from "react";
 import type { AlarmConfig, AnticipationUnit, ValidationError } from "../types";
+import { TimeInput } from "./TimeInput";
 
 interface AlarmFormProps {
 	onSetAlarm: (config: AlarmConfig) => boolean;
@@ -87,24 +89,24 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 	};
 
 	return (
-		<Card className="w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-xl">
+		<Card className="w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-lg">
 			<CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-700 dark:to-slate-800 text-white rounded-t-lg">
-				<CardTitle className="text-center text-2xl font-bold flex items-center justify-center gap-3">
-					<AlarmClock className="w-6 h-6" />
+				<CardTitle className="text-center text-lg sm:text-xl font-bold flex items-center justify-center gap-2 sm:gap-3">
+					<AlarmClock className="w-5 h-5 sm:w-6 sm:h-6" />
 					Configurar Alarma
 				</CardTitle>
 			</CardHeader>
-			<CardContent className="p-8">
-				<form onSubmit={handleSubmit} className="space-y-6">
+			<CardContent className="p-4 sm:p-6">
+				<form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
 					{/* Hora objetivo */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 mb-3">
-							<Clock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-							<Label className="text-base font-medium text-slate-700 dark:text-slate-200">
+							<Clock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
+							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
 								Hora objetivo
 							</Label>
 						</div>
-						<div className="grid grid-cols-3 gap-3">
+						<div className="grid grid-cols-3 gap-2 sm:gap-3">
 							<TimeInput
 								label="Hora"
 								value={formData.targetHour}
@@ -135,12 +137,12 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 					{/* Tiempo de anticipación */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 mb-3">
-							<Timer className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-							<Label className="text-base font-medium text-slate-700 dark:text-slate-200">
+							<Timer className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
+							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
 								Tiempo de anticipación
 							</Label>
 						</div>
-						<div className="grid grid-cols-2 gap-3">
+						<div className="grid grid-cols-2 gap-2 sm:gap-3">
 							<Input
 								type="number"
 								min="1"
@@ -149,7 +151,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 								onChange={(e) =>
 									handleInputChange("anticipationValue", e.target.value)
 								}
-								className="text-center text-lg"
+								className="text-center text-sm sm:text-base"
 								required
 							/>
 							<Select
@@ -158,7 +160,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 									handleInputChange("anticipationUnit", value)
 								}
 							>
-								<SelectTrigger className="text-center text-lg">
+								<SelectTrigger className="text-center text-sm sm:text-base">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
@@ -173,12 +175,12 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 					{/* Tiempo posterior */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 mb-3">
-							<AlarmClock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-							<Label className="text-base font-medium text-slate-700 dark:text-slate-200">
+							<AlarmClock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
+							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
 								Tiempo posterior (opcional)
 							</Label>
 						</div>
-						<div className="grid grid-cols-2 gap-3">
+						<div className="grid grid-cols-2 gap-2 sm:gap-3">
 							<Input
 								type="number"
 								min="1"
@@ -187,7 +189,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 								onChange={(e) =>
 									handleInputChange("posteriorValue", e.target.value)
 								}
-								className="text-center text-lg"
+								className="text-center text-sm sm:text-base"
 							/>
 							<Select
 								value={formData.posteriorUnit}
@@ -195,7 +197,7 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 									handleInputChange("posteriorUnit", value)
 								}
 							>
-								<SelectTrigger className="text-center text-lg">
+								<SelectTrigger className="text-center text-sm sm:text-base">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
@@ -210,8 +212,8 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 					{/* Alarma repetitiva */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 mb-3">
-							<Repeat className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-							<Label className="text-base font-medium text-slate-700 dark:text-slate-200">
+							<Repeat className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
+							<Label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
 								Alarma repetitiva
 							</Label>
 						</div>
@@ -225,17 +227,17 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 							/>
 							<Label
 								htmlFor="repetitive"
-								className="text-sm text-slate-600 dark:text-slate-300"
+								className="text-xs sm:text-sm text-slate-600 dark:text-slate-300"
 							>
 								Repetir cada hora en los minutos seleccionados
 							</Label>
 						</div>
 						{formData.isRepetitive && (
 							<div className="space-y-2">
-								<Label className="text-sm text-slate-600 dark:text-slate-300">
+								<Label className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
 									Seleccionar minutos (ej: 00:10, 01:10, 02:10...)
 								</Label>
-								<div className="grid grid-cols-6 gap-2">
+								<div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 gap-1 sm:gap-2">
 									{Array.from({ length: 60 }, (_, i) => (
 										<button
 											key={i}
@@ -250,16 +252,21 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 													JSON.stringify(newMinutes),
 												);
 											}}
-											className={`p-2 text-xs rounded border ${
+											className={`p-1 sm:p-2 text-xs rounded border transition-all duration-200 ${
 												formData.repetitiveMinutes.includes(i)
-													? "bg-slate-600 text-white border-slate-600"
-													: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600"
+													? "bg-slate-600 text-white border-slate-600 shadow-md"
+													: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 hover:shadow-sm"
 											}`}
 										>
 											{i.toString().padStart(2, "0")}
 										</button>
 									))}
 								</div>
+								{formData.repetitiveMinutes.length > 0 && (
+									<div className="text-xs text-slate-500 dark:text-slate-400">
+										Seleccionados: {formData.repetitiveMinutes.length} minutos
+									</div>
+								)}
 							</div>
 						)}
 					</div>
@@ -273,26 +280,28 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 						</Alert>
 					)}
 
-					<div className="flex gap-4 justify-center pt-6">
+					<div className="flex gap-2 sm:gap-4 justify-center pt-4 sm:pt-6">
 						{!isActive ? (
 							<Button
 								type="submit"
-								size="lg"
-								className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-10 py-4 text-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1 rounded-full"
+								size="sm"
+								className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-full"
 							>
-								<Settings className="w-5 h-5 mr-2" />
-								Configurar Alarma
+								<Settings className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+								<span className="hidden sm:inline">Configurar Alarma</span>
+								<span className="sm:hidden">Configurar</span>
 							</Button>
 						) : (
 							<Button
 								type="button"
 								onClick={onStopAlarm}
-								size="lg"
+								size="sm"
 								variant="destructive"
-								className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-10 py-4 text-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1 rounded-full"
+								className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-full"
 							>
-								<AlarmClock className="w-5 h-5 mr-2" />
-								Detener Alarma
+								<AlarmClock className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+								<span className="hidden sm:inline">Detener Alarma</span>
+								<span className="sm:hidden">Detener</span>
 							</Button>
 						)}
 					</div>

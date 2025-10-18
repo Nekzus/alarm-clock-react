@@ -33,10 +33,13 @@ export const AlarmStatus: React.FC<AlarmStatusProps> = ({ alarmState }) => {
 
 	return (
 		<Card className={`${statusInfo.className} border-2`}>
-			<CardContent className="p-4 text-center">
+			<CardContent className="p-3 sm:p-4 text-center">
 				<div className="flex items-center justify-center space-x-2 mb-2">
 					{statusInfo.icon}
-					<Badge variant={statusInfo.variant} className="text-sm font-medium">
+					<Badge
+						variant={statusInfo.variant}
+						className="text-xs sm:text-sm font-medium"
+					>
 						{statusInfo.text}
 					</Badge>
 				</div>
