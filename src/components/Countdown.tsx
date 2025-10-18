@@ -2,14 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Timer } from "lucide-react";
 import type React from "react";
-import type { AlarmState, AlarmConfig } from "../types";
+import type { AlarmConfig, AlarmState } from "../types";
 
 interface CountdownProps {
 	alarmState: AlarmState;
 	alarmConfig?: AlarmConfig | null;
 }
 
-export const Countdown: React.FC<CountdownProps> = ({ alarmState, alarmConfig }) => {
+export const Countdown: React.FC<CountdownProps> = ({
+	alarmState,
+	alarmConfig,
+}) => {
 	if (!alarmState.isActive || !alarmState.countdown) {
 		return null;
 	}
@@ -25,27 +28,27 @@ export const Countdown: React.FC<CountdownProps> = ({ alarmState, alarmConfig })
 	// Calcular la hora objetivo actual
 	const getCurrentTargetTime = () => {
 		if (!alarmState.alarmTime || !alarmConfig) return alarmState.targetTime;
-		
+
 		// Para alarmas repetitivas, calcular la hora objetivo basada en la alarma actual
 		if (alarmState.isRepetitive) {
 			// Calcular el tiempo de anticipación en milisegundos
 			let anticipationMs = alarmConfig.anticipationValue;
 			switch (alarmConfig.anticipationUnit) {
-				case 'seconds':
+				case "seconds":
 					anticipationMs *= 1000;
 					break;
-				case 'minutes':
+				case "minutes":
 					anticipationMs *= 60 * 1000;
 					break;
-				case 'hours':
+				case "hours":
 					anticipationMs *= 60 * 60 * 1000;
 					break;
 			}
-			
+
 			// La hora objetivo es la alarma actual + tiempo de anticipación
 			return new Date(alarmState.alarmTime.getTime() + anticipationMs);
 		}
-		
+
 		// Para alarmas normales, usar targetTime directamente
 		return alarmState.targetTime;
 	};

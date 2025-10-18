@@ -462,3 +462,6 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
 		</Card>
 	);
 };
+
+// Exportación adicional para asegurar compatibilidad
+export default AlarmForm;
