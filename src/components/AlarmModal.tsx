@@ -25,7 +25,10 @@ export const AlarmModal = ({ isOpen, onClose, targetTime, alarmType }: AlarmModa
       setIsPlaying(true);
 
       // Crear un contexto de audio
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
 
       // Función para crear un beep individual
       const createBeep = (startTime: number, duration: number = 0.3) => {

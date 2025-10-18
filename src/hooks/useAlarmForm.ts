@@ -48,6 +48,7 @@ export const useAlarmForm = (onSetAlarm: (config: AlarmConfig) => boolean) => {
 
   const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Form submission logic naturally has high complexity
     setFormData((currentFormData) => {
       const config: AlarmConfig = {
         targetTime: {

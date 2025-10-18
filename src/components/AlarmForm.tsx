@@ -284,7 +284,8 @@ export const AlarmForm: React.FC<AlarmFormProps> = ({
                       const isSelected = formData.repetitiveMinutes.includes(i);
                       return (
                         <button
-                          key={i}
+                          // biome-ignore lint/suspicious/noArrayIndexKey: Hour buttons are static and don't change order
+                          key={`hour-${i}`}
                           type="button"
                           onClick={() => handleHourSelection(i)}
                           className={`p-1 sm:p-2 text-xs rounded border transition-all duration-200 ${
