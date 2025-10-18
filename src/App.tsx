@@ -1,6 +1,7 @@
-import { Bell, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bell, Zap } from "lucide-react";
+import { memo, useId, useMemo } from "react";
 import { AlarmForm } from "./components/AlarmForm";
 import { AlarmModal } from "./components/AlarmModal";
 import { AlarmStatus } from "./components/AlarmStatus";
@@ -10,7 +11,10 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { useAlarm } from "./hooks/useAlarm";
 import { useClock } from "./hooks/useClock";
 
-function App() {
+// React 19: Componente optimizado con memo y useId
+const App = memo(() => {
+  // React 19: useId para IDs únicos y estables
+  const appId = useId();
   const clockState = useClock();
   const {
     alarmState,
@@ -24,17 +28,28 @@ function App() {
     repeatLastAlarm,
   } = useAlarm();
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 relative">
-      <ThemeToggle />
-
-      {/* Elementos decorativos de fondo */}
+  // React 19: useMemo para optimizar elementos decorativos
+  const decorativeElements = useMemo(
+    () => (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-4 w-16 h-16 sm:w-24 sm:h-24 bg-blue-400/20 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-20 right-4 w-12 h-12 sm:w-20 sm:h-20 bg-purple-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
         <div className="absolute bottom-20 left-1/4 w-20 h-20 sm:w-32 sm:h-32 bg-pink-400/20 rounded-full blur-xl animate-pulse delay-2000"></div>
         <div className="absolute bottom-32 right-1/3 w-14 h-14 sm:w-24 sm:h-24 bg-yellow-400/20 rounded-full blur-xl animate-pulse delay-3000"></div>
       </div>
+    ),
+    []
+  );
+
+  return (
+    <div
+      className="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 relative"
+      id={appId}
+    >
+      <ThemeToggle />
+
+      {/* Elementos decorativos de fondo optimizados */}
+      {decorativeElements}
 
       <div className="w-full max-w-2xl space-y-4 sm:space-y-6 relative z-10">
         <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-700 shadow-xl rounded-2xl overflow-hidden">
@@ -100,6 +115,9 @@ function App() {
       />
     </div>
   );
-}
+});
+
+// React 19: Exportación optimizada con displayName
+App.displayName = "App";
 
 export default App;

@@ -1,5 +1,5 @@
 import type React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 
 type Theme = "light" | "dark";
 
@@ -23,6 +23,7 @@ interface ThemeProviderProps {
   children: React.ReactNode;
 }
 
+// React 19: ThemeProvider optimizado con useCallback y useMemo
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Verificar si hay un tema guardado en localStorage
@@ -37,14 +38,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return "light";
   });
 
-  const setTheme = (newTheme: Theme) => {
+  // React 19: useCallback para optimizar funciones
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("theme", newTheme);
-  };
+  }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme(theme === "light" ? "dark" : "light");
-  };
+  }, [theme, setTheme]);
 
   useEffect(() => {
     // Aplicar el tema al documento
@@ -53,11 +55,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.classList.add(theme);
   }, [theme]);
 
-  const value = {
+  // React 19: useMemo para optimizar el valor del contexto
+  const value = useMemo(() => ({
     theme,
     toggleTheme,
     setTheme,
-  };
+  }), [theme, toggleTheme, setTheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

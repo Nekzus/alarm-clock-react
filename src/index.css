@@ -1,8 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 @custom-variant dark (&:is(.dark *));
+@custom-variant hover-lift (&:hover);
 
 body {
   min-height: 100vh;
@@ -50,11 +52,14 @@ body {
   }
 }
 
-@theme inline {
+@theme {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -86,6 +91,23 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Nuevas variables para TailwindCSS 4 */
+  --color-success: oklch(0.7 0.15 142);
+  --color-warning: oklch(0.8 0.15 85);
+  --color-info: oklch(0.7 0.15 240);
+  --color-error: oklch(0.7 0.15 15);
+  
+  /* Spacing personalizado */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+  --spacing-128: 32rem;
+  
+  /* Animaciones personalizadas */
+  --animation-float: float 3s ease-in-out infinite;
+  --animation-glow: glow 2s ease-in-out infinite;
+  --animation-shimmer: shimmer 2s infinite;
+  --animation-gradient-shift: gradientShift 20s ease infinite;
 }
 
 :root {
@@ -166,10 +188,9 @@ body {
   }
 }
 
-/* Animaciones personalizadas */
+/* Animaciones personalizadas optimizadas para TailwindCSS 4 */
 @keyframes float {
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0px);
   }
   50% {
@@ -178,8 +199,7 @@ body {
 }
 
 @keyframes glow {
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
   50% {
@@ -196,18 +216,35 @@ body {
   }
 }
 
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Utilidades optimizadas para TailwindCSS 4 */
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: var(--animation-float);
 }
 
 .animate-glow {
-  animation: glow 2s ease-in-out infinite;
+  animation: var(--animation-glow);
 }
 
 .animate-shimmer {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: var(--animation-shimmer);
+}
+
+.animate-gradient-shift {
+  animation: var(--animation-gradient-shift);
 }
 
 /* Mejoras de scroll suave */
@@ -215,23 +252,35 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Efectos de hover mejorados */
+/* Efectos de hover optimizados para TailwindCSS 4 */
 .hover-lift {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
+
+/* Utilidades de hover con custom variants */
+@custom-variant hover-lift (&:hover);
 
 /* Estilos específicos para modo oscuro */
 .dark .hover-lift:hover {
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.3),
-    0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Nuevos efectos optimizados */
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-rotate:hover {
+  transform: rotate(2deg);
 }
 
 /* Elementos decorativos para modo claro */
