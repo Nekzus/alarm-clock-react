@@ -11,7 +11,7 @@ export const useAlarm = () => {
 
     const [error, setError] = useState<ValidationError | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
-    const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const countdownIntervalRef = useRef<number | null>(null);
 
     // Inicializar AudioContext
     useEffect(() => {

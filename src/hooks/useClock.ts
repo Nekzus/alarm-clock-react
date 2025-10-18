@@ -11,34 +11,73 @@ export const useClock = () => {
     const [clockState, setClockState] = useState<ClockState>({
         currentTime: '--:--:--',
         currentDate: new Date(),
+        isOnline: true,
+        lastSync: null,
     });
     const [isOnline, setIsOnline] = useState(true);
     const [lastSync, setLastSync] = useState<Date | null>(null);
 
-    // Función para obtener la hora del servidor
-    const fetchServerTime = async (): Promise<Date | null> => {
-        try {
-            const response = await fetch('https://worldtimeapi.org/api/timezone/Europe/Madrid', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
+    // Función para obtener la hora del servidor con múltiples intentos
+    const fetchServerTime = async (retries = 3): Promise<Date | null> => {
+        const servers = [
+            'https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires',
+            'https://timeapi.io/api/Time/current/zone?timeZone=America/Argentina/Buenos_Aires',
+            'https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=zone&zone=America/Argentina/Buenos_Aires'
+        ];
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        for (let attempt = 0; attempt < retries; attempt++) {
+            for (const serverUrl of servers) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
+
+                    const response = await fetch(serverUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        signal: controller.signal,
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data: TimeServerResponse = await response.json();
+                    const serverTime = new Date(data.datetime);
+
+                    // Validar que la hora sea razonable (no más de 1 hora de diferencia con local)
+                    const localTime = new Date();
+                    const timeDiff = Math.abs(serverTime.getTime() - localTime.getTime());
+                    const maxDiff = 60 * 60 * 1000; // 1 hora en milisegundos
+
+                    if (timeDiff > maxDiff) {
+                        console.warn(`Server time seems incorrect, difference: ${timeDiff}ms`);
+                        continue; // Probar siguiente servidor
+                    }
+
+                    setLastSync(new Date());
+                    setIsOnline(true);
+                    console.log(`✅ Sincronizado con servidor: ${serverUrl}`);
+                    return serverTime;
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.warn(`❌ Error con servidor ${serverUrl}:`, errorMessage);
+                    continue; // Probar siguiente servidor
+                }
             }
 
-            const data: TimeServerResponse = await response.json();
-            const serverTime = new Date(data.datetime);
-            setLastSync(new Date());
-            setIsOnline(true);
-            return serverTime;
-        } catch (error) {
-            console.warn('Error fetching server time, falling back to local time:', error);
-            setIsOnline(false);
-            return null;
+            // Esperar antes del siguiente intento
+            if (attempt < retries - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            }
         }
+
+        console.warn('❌ Todos los servidores fallaron, usando hora local');
+        setIsOnline(false);
+        return null;
     };
 
     // Función para calcular el offset entre servidor y local
@@ -49,7 +88,9 @@ export const useClock = () => {
     useEffect(() => {
         let offset = 0;
         let lastServerSync = 0;
-        const SYNC_INTERVAL = 30000; // Sincronizar cada 30 segundos
+        let syncAttempts = 0;
+        const SYNC_INTERVAL = 60000; // Sincronizar cada 60 segundos
+        const MAX_SYNC_ATTEMPTS = 3;
 
         const updateTime = () => {
             const now = new Date();
@@ -57,7 +98,7 @@ export const useClock = () => {
             // Aplicar offset si tenemos uno válido
             const adjustedTime = new Date(now.getTime() + offset);
 
-            const timeString = adjustedTime.toLocaleTimeString('es-ES', {
+            const timeString = adjustedTime.toLocaleTimeString('es-AR', {
                 hour12: false,
                 hour: '2-digit',
                 minute: '2-digit',
@@ -67,22 +108,50 @@ export const useClock = () => {
             setClockState({
                 currentTime: timeString,
                 currentDate: adjustedTime,
+                isOnline,
+                lastSync,
             });
         };
 
-        // Función de sincronización
-        const syncWithServer = async () => {
+        // Función de sincronización inteligente
+        const syncWithServer = async (forceSync = false) => {
+            const timeSinceLastSync = Date.now() - lastServerSync;
+
+            // Solo sincronizar si es necesario o forzado
+            if (!forceSync && timeSinceLastSync < SYNC_INTERVAL) {
+                return;
+            }
+
+            // Evitar demasiados intentos consecutivos
+            if (syncAttempts >= MAX_SYNC_ATTEMPTS && !forceSync) {
+                console.log('⏸️ Pausando intentos de sincronización por demasiados fallos');
+                return;
+            }
+
+            syncAttempts++;
+            console.log(`🔄 Intento de sincronización #${syncAttempts}`);
+
             const serverTime = await fetchServerTime();
             if (serverTime) {
                 const localTime = new Date();
-                offset = calculateOffset(serverTime, localTime);
-                lastServerSync = Date.now();
-                console.log(`Sincronizado con servidor. Offset: ${offset}ms`);
+                const newOffset = calculateOffset(serverTime, localTime);
+
+                // Solo actualizar si el offset es razonable
+                if (Math.abs(newOffset) < 24 * 60 * 60 * 1000) { // Menos de 24 horas
+                    offset = newOffset;
+                    lastServerSync = Date.now();
+                    syncAttempts = 0; // Resetear contador de intentos
+                    console.log(`✅ Sincronizado exitosamente. Offset: ${offset}ms`);
+                } else {
+                    console.warn(`⚠️ Offset demasiado grande: ${newOffset}ms, manteniendo offset anterior`);
+                }
+            } else {
+                console.warn(`❌ Fallo en sincronización #${syncAttempts}`);
             }
         };
 
         // Sincronización inicial
-        syncWithServer();
+        syncWithServer(true);
 
         // Actualizar inmediatamente
         updateTime();
@@ -92,15 +161,19 @@ export const useClock = () => {
 
         // Configurar intervalo para sincronización periódica
         const syncInterval = setInterval(() => {
-            const timeSinceLastSync = Date.now() - lastServerSync;
-            if (timeSinceLastSync > SYNC_INTERVAL) {
-                syncWithServer();
-            }
-        }, 10000); // Verificar cada 10 segundos
+            syncWithServer(false);
+        }, 30000); // Verificar cada 30 segundos
+
+        // Resetear contador de intentos cada 5 minutos
+        const resetInterval = setInterval(() => {
+            syncAttempts = 0;
+            console.log('🔄 Reseteando contador de intentos de sincronización');
+        }, 5 * 60 * 1000);
 
         return () => {
             clearInterval(timeInterval);
             clearInterval(syncInterval);
+            clearInterval(resetInterval);
         };
     }, []);
 
