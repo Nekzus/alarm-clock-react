@@ -4,8 +4,16 @@ import type { ClockState } from "../types";
 // Variable global para evitar múltiples inicializaciones
 let globalInitialized = false;
 
-// Detectar si estamos en modo desarrollo
-const isDevelopment = import.meta.env.DEV;
+// Detectar si estamos en modo desarrollo - deshabilitar API calls en desarrollo
+// TODO: Restaurar detección automática cuando se resuelva el problema de rate limiting
+const isDevelopment = true; // Forzar modo desarrollo para evitar rate limiting
+
+console.log("🔍 Environment check:", {
+  DEV: import.meta.env.DEV,
+  MODE: import.meta.env.MODE,
+  hostname: window.location.hostname,
+  isDevelopment: true,
+});
 
 interface TimeServerResponse {
   datetime: string;
@@ -193,6 +201,7 @@ export const useClock = () => {
 
     // Sincronización inicial solo en producción para evitar problemas en desarrollo
     let initialSyncTimeout: number | null = null;
+    console.log("🔍 Sync decision:", { isDevelopment, willSync: !isDevelopment });
     if (!isDevelopment) {
       initialSyncTimeout = setTimeout(() => {
         if (isMounted) {
